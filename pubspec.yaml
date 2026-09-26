@@ -13,7 +13,10 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+  # Linters
   flutter_lints: ^6.0.0
+  very_good_analysis: ^11.0.0
 
 flutter:
   uses-material-design: true
