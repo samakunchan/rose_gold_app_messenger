@@ -7,8 +7,42 @@ environment:
   sdk: ^3.13.4
 
 dependencies:
-  flutter:
-    sdk: flutter
+
+  # Infos about platform
+  device_info_plus: ^13.2.0
+
+  # Infos about package
+  package_info_plus: ^10.2.1
+
+  # Code generation
+  json_annotation: ^4.12.0
+  freezed_annotation: ^3.1.0
+  equatable: ^3.0.0
+
+  # Manage .env file
+  flutter_dotenv: ^6.0.1
+
+  # Date
+  intl: ^0.20.3
+
+  # State management
+  signals_flutter: ^7.1.0
+  get_it: ^9.3.0
+
+  # Stocke des infos sensibles : Keychains, tokens, private keys
+  flutter_secure_storage: ^11.2.0
+
+  # Stocke des infos non sensibles : hasSeenOnboarding, isDarkMode, Locale.
+  shared_preferences: ^2.5.5
+
+  # Database
+  supabase_flutter: ^2.17.2
+
+  # Local Database
+  drift: ^2.35.0
+
+  # U.I
+  gradient_borders: ^1.0.4
 
 dev_dependencies:
   flutter_test:
