@@ -7,6 +7,8 @@ environment:
   sdk: ^3.13.4
 
 dependencies:
+  flutter:
+    sdk: flutter
 
   # Infos about platform
   device_info_plus: ^13.2.0
