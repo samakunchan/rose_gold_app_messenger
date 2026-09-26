@@ -3,7 +3,7 @@
 ## Added
 
 - Added linter configuration for the project.
-- Added packages that i think its good for the start.
+- Added packages that I think it's good for the start.
 - Added some files to gitignore.
 
 ## Changed
