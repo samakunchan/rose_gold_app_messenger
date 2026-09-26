@@ -1,12 +1,14 @@
 name: rose_gold_app_messenger
-description: "A new Flutter project."
+description: "A new Flutter project for a private app messenger."
 publish_to: 'none'
-version: 0.1.0+1
+version: 0.2.0+1
 
 environment:
   sdk: ^3.13.4
 
 dependencies:
+  flutter:
+    sdk: flutter
 
   # Infos about platform
   device_info_plus: ^13.2.0
