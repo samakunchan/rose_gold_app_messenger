@@ -50,3 +50,4 @@ todo.md
 .env
 refresh.sh
 genicon.sh
+gentranslations.sh
