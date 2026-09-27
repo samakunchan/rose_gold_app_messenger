@@ -10,6 +10,10 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # Localizations
+  flutter_localizations:
+    sdk: flutter
+
   # Infos about platform
   device_info_plus: ^13.2.0
 
