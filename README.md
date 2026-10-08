@@ -1,3 +1,3 @@
-# rose_gold_app_messenger
+# Rose Gold App Messenger
 
-A new Flutter project.
+Application Flutter de messagerie instantanée pour les platforms `android`, `ios` et `macos`.
