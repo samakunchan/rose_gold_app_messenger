@@ -65,5 +65,5 @@ linter:
     always_specify_types: true
 
 formatter:
-  page_width: 160
+  page_width: 145
   trailing_commas: preserve
