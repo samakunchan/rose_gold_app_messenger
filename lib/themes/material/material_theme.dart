@@ -110,7 +110,7 @@ class MaterialTheme {
     extensions: <ThemeExtension<dynamic>>[ChatThemeExtension.dark, FrontThemeExtension.dark],
   );
 
-  static ThemeData getMaterialTheme(Brightness brightness, {String? fontFamily, double fontSizeMultiplier = 1.0}) {
+  static ThemeData getMaterialTheme(Brightness brightness, {String? fontFamily, double fontSizeMultiplier = 1}) {
     final String? resolvedFontFamily = fontFamily == 'System' ? null : fontFamily;
     final bool isDark = brightness == .dark;
     final ThemeData baseTheme = isDark ? materialDarkTheme : materialLightTheme;
