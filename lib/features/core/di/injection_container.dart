@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
@@ -28,7 +30,9 @@ Future<void> initDI() async {
     ..registerSingleton<PackageInfo>(packageInfo)
     ..registerSingleton<SupabaseClient>(Supabase.instance.client)
     ..registerSingleton<SharedPreferencesWithCache>(preferences)
-    ..registerSingleton<FlutterSecureStorage>(const FlutterSecureStorage())
+    ..registerSingleton<FlutterSecureStorage>(
+      Platform.isMacOS ? const FlutterSecureStorage(mOptions: MacOsOptions(usesDataProtectionKeychain: false)) : const FlutterSecureStorage(),
+    )
   //
   ;
   initSupabaseAuthDI();
