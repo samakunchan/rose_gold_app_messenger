@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -14,6 +16,9 @@ void main() async {
   await dotenv.load();
   WidgetsFlutterBinding.ensureInitialized();
 
+  /// Supprime les logs dans la console.
+  SignalsObserver.instance = null;
+
   timeago.setLocaleMessages('fr', timeago.FrMessages());
   timeago.setLocaleMessages('fr_short', timeago.FrShortMessages());
 
@@ -21,7 +26,12 @@ void main() async {
   await Supabase.initialize(
     url: dotenv.env['SUPABASE_APP_URL'] ?? '',
     publishableKey: dotenv.env['SUPABASE_PUBLISHABLE_KEY'] ?? '',
-    authOptions: FlutterAuthClientOptions(localStorage: SecureLocalStorage(const FlutterSecureStorage(), supabasePersistSessionKey)),
+    authOptions: FlutterAuthClientOptions(
+      localStorage: SecureLocalStorage(
+        Platform.isMacOS ? const FlutterSecureStorage(mOptions: MacOsOptions(usesDataProtectionKeychain: false)) : const FlutterSecureStorage(),
+        supabasePersistSessionKey,
+      ),
+    ),
   );
 
   /// D.I
@@ -41,7 +51,7 @@ void main() async {
       await authSignals.checkSession();
     }
 
-    if (event == .passwordRecovery) {
+    if (event == .passwordRecovery && !authSignals.isLoading.value) {
       authSignals.showPasswordScreen.value = true;
       if (kDebugMode) {
         print('Redirection vers le changement de mot de passe');
@@ -49,9 +59,6 @@ void main() async {
       rootNavigatorKey.currentState?.popUntil((Route<dynamic> route) => route.isFirst);
     }
   });
-
-  /// Supprime les logs dans la console.
-  SignalsObserver.instance = null;
 
   runApp(const MainApp());
 }

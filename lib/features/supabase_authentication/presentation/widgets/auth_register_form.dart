@@ -201,6 +201,13 @@ class _AuthRegisterFormState extends State<AuthRegisterForm> {
                             authSignals.isLoginTab.value = true; // Bascule sur l'onglet connexion !
                           },
                         );
+                      } else {
+                        authSignals.isLoginTab.value = true;
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Compte créé avec succès ! Veuillez vous connecter.')),
+                          );
+                        }
                       }
                     }
                   }

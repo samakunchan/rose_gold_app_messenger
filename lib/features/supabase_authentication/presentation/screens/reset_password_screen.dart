@@ -98,10 +98,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     if (authSignals.authError.value != null) {
       showAuthErrorSheet(context: context, title: 'Erreur de réinitialisation', message: authSignals.authError.value!);
     } else {
+      authSignals.isLoginTab.value = true;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Votre mot de passe a été réinitialisé avec succès !')),
       );
-      Navigator.of(context).pop();
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
     }
   }
 
