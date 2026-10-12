@@ -1,5 +1,24 @@
 # CHANGELOG rose_gold_app_messenger
 
+## 🚀 0.4.1 - 12/10/2026
+
+### Added
+
+- N/A
+
+### Changed
+
+- N/A
+
+### Fixed
+
+- Fix entitlement for macos about flutter secure storage. It's specific macos.
+- Fix auth redirection.
+- Fix signals logs.
+
+---
+
+
 ## 🚀 0.4.0 - 08/10/2026 [SUPABASE AUTHENTICATION]
 
 Because it was my first time with **Supabase**, the commits are massive. But I think we have all here.
