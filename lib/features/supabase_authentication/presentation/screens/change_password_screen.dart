@@ -46,6 +46,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
   Future<void> _handleCancel() async {
     final AuthSignals authSignals = kGetIt<AuthSignals>();
+    authSignals.isLoginTab.value = true;
     authSignals.showPasswordScreen.value = false;
     await authSignals.signOut();
 
@@ -73,6 +74,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     if (authSignals.authError.value != null) {
       showAuthErrorSheet(context: context, title: 'Erreur', message: authSignals.authError.value!);
     } else {
+      authSignals.isLoginTab.value = true;
       authSignals.showPasswordScreen.value = false;
       await authSignals.signOut();
 
