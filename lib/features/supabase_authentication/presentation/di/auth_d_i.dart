@@ -1,5 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
+import 'package:rose_gold_app_messenger/features/presences/presentation/signals/user_presence_signals.dart';
 import 'package:rose_gold_app_messenger/features/supabase_authentication/data/datasources/auth_remote_data_source.dart';
 import 'package:rose_gold_app_messenger/features/supabase_authentication/data/datasources/cache_data_source.dart';
 import 'package:rose_gold_app_messenger/features/supabase_authentication/data/repositories/auth_repository_impl.dart';
@@ -42,6 +43,7 @@ void initSupabaseAuthDI() {
         forgotPasswordRequestUseCase: kGetIt<ForgotPasswordRequestUseCase>(),
         changePasswordUseCase: kGetIt<ChangePasswordUseCase>(),
         getRememberedCredentials: kGetIt<GetRememberedCredentials>(),
+        userPresenceSignals: kGetIt<UserPresenceSignals>(),
       ),
     )
   //

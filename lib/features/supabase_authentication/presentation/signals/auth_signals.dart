@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:dart_either/dart_either.dart';
 import 'package:flutter/foundation.dart';
 import 'package:rose_gold_app_messenger/features/core/errors/failures.dart';
+import 'package:rose_gold_app_messenger/features/presences/presentation/signals/user_presence_signals.dart';
 import 'package:rose_gold_app_messenger/features/supabase_authentication/domain/entities/auth_session_entity.dart';
 import 'package:rose_gold_app_messenger/features/supabase_authentication/domain/entities/credential_remembered_entity.dart';
 import 'package:rose_gold_app_messenger/features/supabase_authentication/domain/usecases/get_remembered_credentials.dart';
@@ -19,6 +22,7 @@ class AuthSignals {
     required this.forgotPasswordRequestUseCase,
     required this.changePasswordUseCase,
     required this.getRememberedCredentials,
+    required this.userPresenceSignals,
   });
 
   final SignInUseCase signInUseCase;
@@ -29,6 +33,7 @@ class AuthSignals {
   final ForgotPasswordRequestUseCase forgotPasswordRequestUseCase;
   final ChangePasswordUseCase changePasswordUseCase;
   final GetRememberedCredentials getRememberedCredentials;
+  final UserPresenceSignals userPresenceSignals;
 
   /// Reactive State Signals
   final Signal<AuthSessionViewModel?> currentAuthSession = signal<AuthSessionViewModel?>(null);
@@ -71,7 +76,7 @@ class AuthSignals {
       SignInParams(email: email, password: password, rememberMe: rememberMe),
     );
 
-    result.fold(
+    await result.fold(
       ifLeft: (Failure failure) {
         if (kDebugMode) {
           print('ifLeft: $failure');
@@ -84,7 +89,7 @@ class AuthSignals {
           authError.value = failure.message;
         }
       },
-      ifRight: (AuthSessionEntity session) {
+      ifRight: (AuthSessionEntity session) async {
         if (kDebugMode) {
           print('ifRight: $session');
         }
@@ -92,6 +97,13 @@ class AuthSignals {
         authError.value = null;
         accountCreatedAt.value = AuthSessionViewModel(session).accountCreatedAt;
         userConnectedName.value = AuthSessionViewModel(session).username;
+        if (currentAuthSession.value != null) {
+          await userPresenceSignals.joinGlobalChannel(
+            userId: currentAuthSession.value!.userId,
+            username: currentAuthSession.value!.username,
+            device: Platform.operatingSystem,
+          );
+        }
       },
     );
 
@@ -123,6 +135,7 @@ class AuthSignals {
         accountCreatedAt.value = null;
         userConnectedName.value = null;
         await checkSavedCredentials();
+        await userPresenceSignals.leaveGlobalChannel();
       },
     );
     isLoading.value = false;
@@ -134,7 +147,7 @@ class AuthSignals {
 
     final Either<Failure, AuthSessionEntity> result = await getSessionUseCase();
 
-    result.fold(
+    await result.fold(
       ifLeft: (Failure failure) {
         currentAuthSession.value = null;
         accountCreatedAt.value = null;
@@ -143,11 +156,18 @@ class AuthSignals {
           authError.value = failure.message;
         }
       },
-      ifRight: (AuthSessionEntity session) {
+      ifRight: (AuthSessionEntity session) async {
         currentAuthSession.value = AuthSessionViewModel(session);
         authError.value = null;
         accountCreatedAt.value = AuthSessionViewModel(session).accountCreatedAt;
         userConnectedName.value = AuthSessionViewModel(session).username;
+        if (currentAuthSession.value != null) {
+          await userPresenceSignals.joinGlobalChannel(
+            userId: currentAuthSession.value!.userId,
+            username: currentAuthSession.value!.username,
+            device: Platform.operatingSystem,
+          );
+        }
       },
     );
 
@@ -253,7 +273,7 @@ class AuthSignals {
   Future<void> deleteAppMessengerAccount() async {
     final Either<Failure, bool> result = await deleteAccountUseCase();
 
-    result.fold(
+    await result.fold(
       ifLeft: (Failure failure) {
         if (kDebugMode) {
           print('ifLeft: $failure');
@@ -263,7 +283,7 @@ class AuthSignals {
           authError.value = failure.message;
         }
       },
-      ifRight: (bool value) {
+      ifRight: (bool value) async {
         if (kDebugMode) {
           print('ifRight: $value');
         }
@@ -271,6 +291,7 @@ class AuthSignals {
         authError.value = null;
         accountCreatedAt.value = null;
         userConnectedName.value = null;
+        await userPresenceSignals.leaveGlobalChannel();
       },
     );
   }
