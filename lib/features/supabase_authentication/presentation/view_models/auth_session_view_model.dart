@@ -10,6 +10,7 @@ class AuthSessionViewModel {
   final String _locale;
   AuthSessionEntity get entity => _entity;
 
+  String get userId => _entity.id;
   String get username => _entity.username ?? '';
   String get lastConnectionAt => timeago.format(DateTime.parse(_entity.lastSignInAt ?? DateTime.now().toString()), locale: _locale);
   String get accountCreatedAt => timeago.format(DateTime.parse(_entity.createdAt), locale: _locale);
