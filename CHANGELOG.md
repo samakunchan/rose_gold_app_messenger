@@ -1,5 +1,27 @@
 # CHANGELOG rose_gold_app_messenger
 
+## 🚀 0.5.0 - 13/10/2026
+
+### Added
+
+- Added User Presence data sources, models, and repositories.
+- Added User Presence domain entities, repository contracts, and use cases.
+- Added User Presence presentation layer: controllers, view models, and reactive signals.
+- Added core and authentication dependency injection containers.
+
+### Changed
+
+- N/A
+
+### Fixed
+
+- Fix entitlement for macOS about flutter secure storage. It's specific macos.
+- Fix auth redirection.
+- Fix signals logs.
+
+---
+
+
 ## 🚀 0.4.1 - 12/10/2026
 
 ### Added
