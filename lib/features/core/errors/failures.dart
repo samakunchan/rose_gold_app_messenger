@@ -55,10 +55,17 @@ class AuthenticationFailure extends Failure {
   const new({super.message = ErrorMessage.authFailureMessage});
 }
 
+/// Value: "La création de compte a échoué."
 class RegistrationFailure extends Failure {
-  const new({super.message = ErrorMessage.authFailureMessage});
+  const new({super.message = ErrorMessage.registrationFailureMessage});
 }
 
+/// Value: "Ne pas spammer cette action."
 class DoNotSpamFailure extends Failure {
   const new({super.message = ErrorMessage.noSpamFailureMessage});
+}
+
+/// Value: "Un problème est survenue lors de la détection de la présence de cette utilisateur."
+class UserPresenceFailure extends Failure {
+  const new({super.message = ErrorMessage.userPresenceFailureMessage});
 }
