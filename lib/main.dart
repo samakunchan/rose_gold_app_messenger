@@ -43,10 +43,6 @@ void main() async {
     final AuthChangeEvent event = data.event;
     final Session? session = data.session;
 
-    if (kDebugMode) {
-      print('Event en cours : $event');
-      print('Session en cours : $session');
-    }
     if (event == .initialSession && session != null) {
       await authSignals.checkSession();
     }
