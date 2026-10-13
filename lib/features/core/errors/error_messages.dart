@@ -29,6 +29,9 @@ class ErrorMessage {
   /// Value: "La création de compte a échoué."
   static const String registrationFailureMessage = 'La création de compte a échoué.';
 
-  /// Value: "La création de compte a échoué."
+  /// Value: "Ne pas spammer cette action."
   static const String noSpamFailureMessage = 'Ne pas spammer cette action.';
+
+  /// Value: "Un problème est survenue lors de la détection de la présence de cette utilisateur."
+  static const String userPresenceFailureMessage = 'Un problème est survenue lors de la détection de la présence de cette utilisateur.';
 }
