@@ -69,3 +69,13 @@ class DoNotSpamFailure extends Failure {
 class UserPresenceFailure extends Failure {
   const new({super.message = ErrorMessage.userPresenceFailureMessage});
 }
+
+/// Value: "Un problème est survenue lors de la détection de la création du salon."
+class RoomsFailure extends Failure {
+  const new({super.message = ErrorMessage.roomCreateFailureMessage});
+}
+
+/// Value: "Un problème est survenue lors du processus d‘invitation au salon."
+class RoomsInvitationFailure extends Failure {
+  const new({super.message = ErrorMessage.roomInvitationFailureMessage});
+}

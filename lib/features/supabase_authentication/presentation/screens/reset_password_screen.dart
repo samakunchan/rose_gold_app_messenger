@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
+import 'package:rose_gold_app_messenger/features/core/errors/show_errors_sheet.dart';
 import 'package:rose_gold_app_messenger/features/supabase_authentication/presentation/signals/auth_signals.dart';
-import 'package:rose_gold_app_messenger/features/supabase_authentication/presentation/widgets/show_auth_errors_sheet.dart';
 import 'package:rose_gold_app_messenger/features/supabase_authentication/presentation/widgets/widgets_export.dart';
 import 'package:rose_gold_app_messenger/themes/themes_all_export.dart';
 import 'package:rose_gold_app_messenger/themes/widgets/widgets_export.dart';
@@ -34,7 +34,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   Future<void> _handleSendCode() async {
     final String email = _emailController.text.trim();
     if (email.isEmpty || !email.contains('@')) {
-      showAuthErrorSheet(
+      showErrorSheet(
         context: context,
         title: 'Email invalide',
         message: 'Veuillez renseigner une adresse email valide pour continuer.',
@@ -49,7 +49,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     }
 
     if (authSignals.authError.value != null) {
-      showAuthErrorSheet(
+      showErrorSheet(
         context: context,
         title: 'Échec de l’envoi',
         message: authSignals.authError.value!,
@@ -76,7 +76,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     }
 
     if (authSignals.authError.value != null) {
-      showAuthErrorSheet(context: context, title: 'Échec du renvoi', message: authSignals.authError.value!);
+      showErrorSheet(context: context, title: 'Échec du renvoi', message: authSignals.authError.value!);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Un nouveau code de sécurité vous a été envoyé.')),
@@ -96,7 +96,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     }
 
     if (authSignals.authError.value != null) {
-      showAuthErrorSheet(context: context, title: 'Erreur de réinitialisation', message: authSignals.authError.value!);
+      showErrorSheet(context: context, title: 'Erreur de réinitialisation', message: authSignals.authError.value!);
     } else {
       authSignals.isLoginTab.value = true;
       ScaffoldMessenger.of(context).showSnackBar(
