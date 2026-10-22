@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$UserMetadataModel {
 
- String get email; String get sub;@JsonKey(name: 'target_app') String get targetApp;@JsonKey(name: 'email_verified') bool get emailVerified;@JsonKey(name: 'phone_verified') bool get phoneVerified; String? get username;
+ String get email; String get sub;@JsonKey(name: 'target_app') String get targetApp;@JsonKey(name: 'email_verified') bool get emailVerified;@JsonKey(name: 'phone_verified') bool get phoneVerified; String? get username;@JsonKey(name: 'user_tag') String? get userTag;
 /// Create a copy of UserMetadataModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +30,20 @@ $UserMetadataModelCopyWith<UserMetadataModel> get copyWith => _$UserMetadataMode
 @override
 bool operator ==(Object other) {
   final _this = this as UserMetadataModel;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserMetadataModel&&(identical(other.email, _this.email) || other.email == _this.email)&&(identical(other.sub, _this.sub) || other.sub == _this.sub)&&(identical(other.targetApp, _this.targetApp) || other.targetApp == _this.targetApp)&&(identical(other.emailVerified, _this.emailVerified) || other.emailVerified == _this.emailVerified)&&(identical(other.phoneVerified, _this.phoneVerified) || other.phoneVerified == _this.phoneVerified)&&(identical(other.username, _this.username) || other.username == _this.username));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is UserMetadataModel&&(identical(other.email, _this.email) || other.email == _this.email)&&(identical(other.sub, _this.sub) || other.sub == _this.sub)&&(identical(other.targetApp, _this.targetApp) || other.targetApp == _this.targetApp)&&(identical(other.emailVerified, _this.emailVerified) || other.emailVerified == _this.emailVerified)&&(identical(other.phoneVerified, _this.phoneVerified) || other.phoneVerified == _this.phoneVerified)&&(identical(other.username, _this.username) || other.username == _this.username)&&(identical(other.userTag, _this.userTag) || other.userTag == _this.userTag));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as UserMetadataModel;
-  return Object.hash(runtimeType,_this.email,_this.sub,_this.targetApp,_this.emailVerified,_this.phoneVerified,_this.username);
+  return Object.hash(runtimeType,_this.email,_this.sub,_this.targetApp,_this.emailVerified,_this.phoneVerified,_this.username,_this.userTag);
 }
 
 @override
 String toString() {
   final _this = this as UserMetadataModel;
-  return 'UserMetadataModel(email: ${_this.email}, sub: ${_this.sub}, targetApp: ${_this.targetApp}, emailVerified: ${_this.emailVerified}, phoneVerified: ${_this.phoneVerified}, username: ${_this.username})';
+  return 'UserMetadataModel(email: ${_this.email}, sub: ${_this.sub}, targetApp: ${_this.targetApp}, emailVerified: ${_this.emailVerified}, phoneVerified: ${_this.phoneVerified}, username: ${_this.username}, userTag: ${_this.userTag})';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $UserMetadataModelCopyWith<$Res>  {
   factory $UserMetadataModelCopyWith(UserMetadataModel value, $Res Function(UserMetadataModel) _then) = _$UserMetadataModelCopyWithImpl;
 @useResult
 $Res call({
- String email, String sub,@JsonKey(name: 'target_app') String targetApp,@JsonKey(name: 'email_verified') bool emailVerified,@JsonKey(name: 'phone_verified') bool phoneVerified, String? username
+ String email, String sub,@JsonKey(name: 'target_app') String targetApp,@JsonKey(name: 'email_verified') bool emailVerified,@JsonKey(name: 'phone_verified') bool phoneVerified, String? username,@JsonKey(name: 'user_tag') String? userTag
 });
 
 
@@ -71,7 +71,7 @@ class _$UserMetadataModelCopyWithImpl<$Res>
 
 /// Create a copy of UserMetadataModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? email = null,Object? sub = null,Object? targetApp = null,Object? emailVerified = null,Object? phoneVerified = null,Object? username = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? email = null,Object? sub = null,Object? targetApp = null,Object? emailVerified = null,Object? phoneVerified = null,Object? username = freezed,Object? userTag = freezed,}) {
   return _then(UserMetadataModel(
 email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
 as String,sub: null == sub ? _self.sub : sub // ignore: cast_nullable_to_non_nullable
@@ -79,6 +79,7 @@ as String,targetApp: null == targetApp ? _self.targetApp : targetApp // ignore: 
 as String,emailVerified: null == emailVerified ? _self.emailVerified : emailVerified // ignore: cast_nullable_to_non_nullable
 as bool,phoneVerified: null == phoneVerified ? _self.phoneVerified : phoneVerified // ignore: cast_nullable_to_non_nullable
 as bool,username: freezed == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
+as String?,userTag: freezed == userTag ? _self.userTag : userTag // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -164,10 +165,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String email,  String sub, @JsonKey(name: 'target_app')  String targetApp, @JsonKey(name: 'email_verified')  bool emailVerified, @JsonKey(name: 'phone_verified')  bool phoneVerified,  String? username)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String email,  String sub, @JsonKey(name: 'target_app')  String targetApp, @JsonKey(name: 'email_verified')  bool emailVerified, @JsonKey(name: 'phone_verified')  bool phoneVerified,  String? username, @JsonKey(name: 'user_tag')  String? userTag)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _UserMetadataModel() when $default != null:
-return $default(_that.email,_that.sub,_that.targetApp,_that.emailVerified,_that.phoneVerified,_that.username);case _:
+return $default(_that.email,_that.sub,_that.targetApp,_that.emailVerified,_that.phoneVerified,_that.username,_that.userTag);case _:
   return orElse();
 
 }
@@ -185,10 +186,10 @@ return $default(_that.email,_that.sub,_that.targetApp,_that.emailVerified,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String email,  String sub, @JsonKey(name: 'target_app')  String targetApp, @JsonKey(name: 'email_verified')  bool emailVerified, @JsonKey(name: 'phone_verified')  bool phoneVerified,  String? username)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String email,  String sub, @JsonKey(name: 'target_app')  String targetApp, @JsonKey(name: 'email_verified')  bool emailVerified, @JsonKey(name: 'phone_verified')  bool phoneVerified,  String? username, @JsonKey(name: 'user_tag')  String? userTag)  $default,) {final _that = this;
 switch (_that) {
 case _UserMetadataModel():
-return $default(_that.email,_that.sub,_that.targetApp,_that.emailVerified,_that.phoneVerified,_that.username);case _:
+return $default(_that.email,_that.sub,_that.targetApp,_that.emailVerified,_that.phoneVerified,_that.username,_that.userTag);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -205,10 +206,10 @@ return $default(_that.email,_that.sub,_that.targetApp,_that.emailVerified,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String email,  String sub, @JsonKey(name: 'target_app')  String targetApp, @JsonKey(name: 'email_verified')  bool emailVerified, @JsonKey(name: 'phone_verified')  bool phoneVerified,  String? username)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String email,  String sub, @JsonKey(name: 'target_app')  String targetApp, @JsonKey(name: 'email_verified')  bool emailVerified, @JsonKey(name: 'phone_verified')  bool phoneVerified,  String? username, @JsonKey(name: 'user_tag')  String? userTag)?  $default,) {final _that = this;
 switch (_that) {
 case _UserMetadataModel() when $default != null:
-return $default(_that.email,_that.sub,_that.targetApp,_that.emailVerified,_that.phoneVerified,_that.username);case _:
+return $default(_that.email,_that.sub,_that.targetApp,_that.emailVerified,_that.phoneVerified,_that.username,_that.userTag);case _:
   return null;
 
 }
@@ -220,7 +221,7 @@ return $default(_that.email,_that.sub,_that.targetApp,_that.emailVerified,_that.
 @JsonSerializable()
 
 class _UserMetadataModel implements UserMetadataModel {
-   _UserMetadataModel({required this.email, required this.sub, @JsonKey(name: 'target_app') required this.targetApp, @JsonKey(name: 'email_verified') required this.emailVerified, @JsonKey(name: 'phone_verified') required this.phoneVerified, this.username});
+   _UserMetadataModel({required this.email, required this.sub, @JsonKey(name: 'target_app') required this.targetApp, @JsonKey(name: 'email_verified') required this.emailVerified, @JsonKey(name: 'phone_verified') required this.phoneVerified, this.username, @JsonKey(name: 'user_tag') this.userTag});
   factory _UserMetadataModel.fromJson(Map<String, dynamic> json) => _$UserMetadataModelFromJson(json);
 
 @override final  String email;
@@ -229,6 +230,7 @@ class _UserMetadataModel implements UserMetadataModel {
 @override@JsonKey(name: 'email_verified') final  bool emailVerified;
 @override@JsonKey(name: 'phone_verified') final  bool phoneVerified;
 @override final  String? username;
+@override@JsonKey(name: 'user_tag') final  String? userTag;
 
 /// Create a copy of UserMetadataModel
 /// with the given fields replaced by the non-null parameter values.
@@ -243,18 +245,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserMetadataModel&&(identical(other.email, email) || other.email == email)&&(identical(other.sub, sub) || other.sub == sub)&&(identical(other.targetApp, targetApp) || other.targetApp == targetApp)&&(identical(other.emailVerified, emailVerified) || other.emailVerified == emailVerified)&&(identical(other.phoneVerified, phoneVerified) || other.phoneVerified == phoneVerified)&&(identical(other.username, username) || other.username == username));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _UserMetadataModel&&(identical(other.email, email) || other.email == email)&&(identical(other.sub, sub) || other.sub == sub)&&(identical(other.targetApp, targetApp) || other.targetApp == targetApp)&&(identical(other.emailVerified, emailVerified) || other.emailVerified == emailVerified)&&(identical(other.phoneVerified, phoneVerified) || other.phoneVerified == phoneVerified)&&(identical(other.username, username) || other.username == username)&&(identical(other.userTag, userTag) || other.userTag == userTag));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,email,sub,targetApp,emailVerified,phoneVerified,username);
+    return Object.hash(runtimeType,email,sub,targetApp,emailVerified,phoneVerified,username,userTag);
 }
 
 @override
 String toString() {
-    return 'UserMetadataModel(email: $email, sub: $sub, targetApp: $targetApp, emailVerified: $emailVerified, phoneVerified: $phoneVerified, username: $username)';
+    return 'UserMetadataModel(email: $email, sub: $sub, targetApp: $targetApp, emailVerified: $emailVerified, phoneVerified: $phoneVerified, username: $username, userTag: $userTag)';
 }
 
 
@@ -265,7 +267,7 @@ abstract mixin class _$UserMetadataModelCopyWith<$Res> implements $UserMetadataM
   factory _$UserMetadataModelCopyWith(_UserMetadataModel value, $Res Function(_UserMetadataModel) _then) = __$UserMetadataModelCopyWithImpl;
 @override @useResult
 $Res call({
- String email, String sub,@JsonKey(name: 'target_app') String targetApp,@JsonKey(name: 'email_verified') bool emailVerified,@JsonKey(name: 'phone_verified') bool phoneVerified, String? username
+ String email, String sub,@JsonKey(name: 'target_app') String targetApp,@JsonKey(name: 'email_verified') bool emailVerified,@JsonKey(name: 'phone_verified') bool phoneVerified, String? username,@JsonKey(name: 'user_tag') String? userTag
 });
 
 
@@ -282,7 +284,7 @@ class __$UserMetadataModelCopyWithImpl<$Res>
 
 /// Create a copy of UserMetadataModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? email = null,Object? sub = null,Object? targetApp = null,Object? emailVerified = null,Object? phoneVerified = null,Object? username = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? email = null,Object? sub = null,Object? targetApp = null,Object? emailVerified = null,Object? phoneVerified = null,Object? username = freezed,Object? userTag = freezed,}) {
   return _then(_UserMetadataModel(
 email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
 as String,sub: null == sub ? _self.sub : sub // ignore: cast_nullable_to_non_nullable
@@ -290,6 +292,7 @@ as String,targetApp: null == targetApp ? _self.targetApp : targetApp // ignore: 
 as String,emailVerified: null == emailVerified ? _self.emailVerified : emailVerified // ignore: cast_nullable_to_non_nullable
 as bool,phoneVerified: null == phoneVerified ? _self.phoneVerified : phoneVerified // ignore: cast_nullable_to_non_nullable
 as bool,username: freezed == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
+as String?,userTag: freezed == userTag ? _self.userTag : userTag // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

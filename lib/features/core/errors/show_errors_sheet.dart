@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:rose_gold_app_messenger/themes/themes_all_export.dart';
 
-void showAuthErrorSheet({
+void showErrorSheet({
   required BuildContext context,
   required String title,
   required String message,

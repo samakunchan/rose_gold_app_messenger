@@ -11,6 +11,7 @@ abstract class AuthRemoteDataSource {
   Future<UserResponse> changePassword({required String email, required String password, String? token});
 
   Future<Session?> getSession();
+  Future<String?> getUserTag({required String userId});
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -89,5 +90,15 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     final AuthResponse res = await client.auth.signUp(email: phoneNumber, password: password, data: data);
 
     return res;
+  }
+
+  @override
+  Future<String?> getUserTag({required String userId}) async {
+    try {
+      final Map<String, dynamic>? profile = await client.from('profiles').select('user_tag').eq('id', userId).maybeSingle();
+      return profile?['user_tag'] as String?;
+    } on Object catch (_) {
+      return null;
+    }
   }
 }

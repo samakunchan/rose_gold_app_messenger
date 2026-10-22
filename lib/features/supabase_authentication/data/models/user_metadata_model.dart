@@ -13,6 +13,7 @@ abstract class UserMetadataModel with _$UserMetadataModel {
     @JsonKey(name: 'email_verified') required bool emailVerified,
     @JsonKey(name: 'phone_verified') required bool phoneVerified,
     String? username,
+    @JsonKey(name: 'user_tag') String? userTag,
   }) = _UserMetadataModel;
 
   factory fromJson(Map<String, dynamic> json) => _$UserMetadataModelFromJson(json);
@@ -24,6 +25,7 @@ extension UserMetadataModelX on UserMetadataModel {
     sub: sub,
     targetApp: targetApp,
     username: username,
+    userTag: userTag,
     emailVerified: emailVerified,
     phoneVerified: phoneVerified,
   );

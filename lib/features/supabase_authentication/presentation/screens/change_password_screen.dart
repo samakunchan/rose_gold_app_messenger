@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
+import 'package:rose_gold_app_messenger/features/core/errors/show_errors_sheet.dart';
 import 'package:rose_gold_app_messenger/features/supabase_authentication/presentation/signals/auth_signals.dart';
 import 'package:rose_gold_app_messenger/features/supabase_authentication/presentation/widgets/forms/password_text_field.dart';
-import 'package:rose_gold_app_messenger/features/supabase_authentication/presentation/widgets/show_auth_errors_sheet.dart';
 import 'package:rose_gold_app_messenger/features/supabase_authentication/presentation/widgets/widgets_export.dart';
 import 'package:rose_gold_app_messenger/themes/themes_all_export.dart';
 import 'package:rose_gold_app_messenger/themes/widgets/widgets_export.dart';
@@ -72,7 +72,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     }
 
     if (authSignals.authError.value != null) {
-      showAuthErrorSheet(context: context, title: 'Erreur', message: authSignals.authError.value!);
+      showErrorSheet(context: context, title: 'Erreur', message: authSignals.authError.value!);
     } else {
       authSignals.isLoginTab.value = true;
       authSignals.showPasswordScreen.value = false;

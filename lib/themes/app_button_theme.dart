@@ -185,7 +185,7 @@ class AppButtonTheme {
   static final ButtonStyle _iconButtonStyleLight = IconButton.styleFrom(
     shape: kPillShapeBorder,
     padding: _kIconButtonPadding,
-    foregroundColor: kLightPrimaryColor,
+    foregroundColor: kLightSecondaryContainerColor,
     hoverColor: kLightPrimaryColor.withValues(alpha: 0.08),
     highlightColor: kLightPrimaryColor.withValues(alpha: 0.12),
   );
@@ -193,7 +193,7 @@ class AppButtonTheme {
   static final ButtonStyle _iconButtonStyleDark = IconButton.styleFrom(
     shape: kPillShapeBorder,
     padding: _kIconButtonPadding,
-    foregroundColor: kDarkPrimaryColor,
+    foregroundColor: kDarkSecondaryContainerColor,
     hoverColor: kDarkPrimaryColor.withValues(alpha: 0.08),
     highlightColor: kDarkPrimaryColor.withValues(alpha: 0.12),
   );
