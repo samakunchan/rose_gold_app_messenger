@@ -9,6 +9,7 @@ import 'package:rose_gold_app_messenger/features/presences/presentation/di/prese
 import 'package:rose_gold_app_messenger/features/rooms/presentation/di/rooms_d_i.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/di/rooms_invitations_d_i.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/di/rooms_members_d_i.dart';
+import 'package:rose_gold_app_messenger/features/settings/presentation/di/settings_d_i.dart';
 import 'package:rose_gold_app_messenger/features/supabase_authentication/presentation/di/auth_d_i.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -46,4 +47,5 @@ Future<void> initDI() async {
   initSupabaseRoomDI();
   initSupabaseRoomsMembersDI();
   initSupabaseRoomInvitationsDI();
+  initSettingsDI();
 }

@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:rose_gold_app_messenger/extensions/context_extension.dart';
 import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/screens/rooms_screen.dart';
+import 'package:rose_gold_app_messenger/features/settings/presentation/signals/theme_mode_signals.dart';
 import 'package:rose_gold_app_messenger/features/supabase_authentication/presentation/screens/authentication_screen.dart';
 import 'package:rose_gold_app_messenger/features/supabase_authentication/presentation/screens/change_password_screen.dart';
 import 'package:rose_gold_app_messenger/features/supabase_authentication/presentation/signals/auth_signals.dart';
@@ -15,6 +16,7 @@ class MainApp extends SignalWidget {
   @override
   Widget build(BuildContext context) {
     final AuthSignals authSignals = kGetIt<AuthSignals>();
+    final ThemeModeSignals changeThemeModeSignals = kGetIt<ThemeModeSignals>();
 
     return MaterialApp(
       navigatorKey: rootNavigatorKey,
@@ -27,6 +29,7 @@ class MainApp extends SignalWidget {
       debugShowCheckedModeBanner: false,
       theme: MaterialTheme.light,
       darkTheme: MaterialTheme.dark,
+      themeMode: changeThemeModeSignals.themeMode.value,
       home: authSignals.showPasswordScreen.value
           ? const ChangePasswordScreen()
           : (authSignals.currentAuthSession.value == null ? const AuthenticationScreen() : const RoomsScreen()),
