@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rose_gold_app_messenger/themes/extensions/rooms_theme_extension.dart';
 import 'package:rose_gold_app_messenger/themes/themes_all_export.dart';
 
 class MaterialTheme {
@@ -55,7 +56,7 @@ class MaterialTheme {
     dividerTheme: const DividerThemeData(space: 1, thickness: 0.5, color: kHairlineDividerColor),
     badgeTheme: const BadgeThemeData(backgroundColor: kLightSecondaryContainerColor, textColor: kLightOnSecondaryContainerColor),
     progressIndicatorTheme: const ProgressIndicatorThemeData(color: kLightPrimaryContainerColor),
-    extensions: <ThemeExtension<dynamic>>[ChatThemeExtension.light, FrontThemeExtension.light],
+    extensions: <ThemeExtension<dynamic>>[ChatThemeExtension.light, FrontThemeExtension.light, RoomsThemeExtension.light],
   );
 
   static final ThemeData materialDarkTheme = ThemeData(
@@ -107,7 +108,7 @@ class MaterialTheme {
     dividerTheme: const DividerThemeData(space: 1, thickness: 0.5, color: kDarkHairlineDividerColor),
     badgeTheme: const BadgeThemeData(backgroundColor: kDarkSecondaryContainerColor, textColor: kDarkOnSecondaryContainerColor),
     progressIndicatorTheme: const ProgressIndicatorThemeData(color: kDarkPrimaryColor),
-    extensions: <ThemeExtension<dynamic>>[ChatThemeExtension.dark, FrontThemeExtension.dark],
+    extensions: <ThemeExtension<dynamic>>[ChatThemeExtension.dark, FrontThemeExtension.dark, RoomsThemeExtension.dark],
   );
 
   static ThemeData getMaterialTheme(Brightness brightness, {String? fontFamily, double fontSizeMultiplier = 1}) {
