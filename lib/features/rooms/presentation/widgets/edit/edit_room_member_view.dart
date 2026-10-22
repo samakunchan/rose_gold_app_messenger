@@ -3,7 +3,6 @@ import 'package:rose_gold_app_messenger/features/core/di/injection_container.dar
 import 'package:rose_gold_app_messenger/features/rooms/presentation/signals/room_members_signals.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/widgets/forms/zone_danger_actions.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/widgets/monogram_user.dart';
-import 'package:rose_gold_app_messenger/themes/extensions/rooms_theme_extension.dart';
 import 'package:rose_gold_app_messenger/themes/themes_all_export.dart';
 
 class EditRoomMemberView extends StatelessWidget {
@@ -58,7 +57,6 @@ class EditRoomMemberView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final RoomsThemeExtension roomsTheme = theme.extension<RoomsThemeExtension>() ?? .light;
     final String avatarUrl = roomAvatarUrl ?? '';
 
     return Column(

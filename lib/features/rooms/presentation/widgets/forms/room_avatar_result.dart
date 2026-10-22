@@ -1,6 +1,5 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/widgets/monogram_user.dart';
-import 'package:rose_gold_app_messenger/themes/extensions/rooms_theme_extension.dart';
 import 'package:rose_gold_app_messenger/themes/themes_all_export.dart';
 
 class RoomAvatarResult extends StatelessWidget {
@@ -12,7 +11,6 @@ class RoomAvatarResult extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final RoomsThemeExtension roomsTheme = theme.extension<RoomsThemeExtension>() ?? .light;
 
     return Center(
       child: Column(
