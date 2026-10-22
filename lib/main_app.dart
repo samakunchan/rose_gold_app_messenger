@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:rose_gold_app_messenger/extensions/context_extension.dart';
 import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/screens/rooms_screen.dart';
@@ -19,7 +19,10 @@ class MainApp extends SignalWidget {
     return MaterialApp(
       navigatorKey: rootNavigatorKey,
       onGenerateTitle: (BuildContext context) => context.localizations.appTitle,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
+        AppLocalizations.delegate,
+        ...GlobalMaterialLocalizations.delegates,
+      ],
       supportedLocales: AppLocalizations.supportedLocales,
       debugShowCheckedModeBanner: false,
       theme: MaterialTheme.light,

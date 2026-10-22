@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/signals/rooms_signals.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/view_models/room_view_model.dart';

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/view_models/room_member_view_model.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/view_models/room_view_model.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/widgets/monogram_user.dart';
