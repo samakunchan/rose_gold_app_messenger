@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
+import 'package:rose_gold_app_messenger/features/core/errors/show_errors_sheet.dart';
 import 'package:rose_gold_app_messenger/features/supabase_authentication/presentation/screens/reset_password_screen.dart';
 import 'package:rose_gold_app_messenger/features/supabase_authentication/presentation/signals/auth_signals.dart';
 import 'package:rose_gold_app_messenger/features/supabase_authentication/presentation/view_models/credentials_saved_view_model.dart';
 import 'package:rose_gold_app_messenger/features/supabase_authentication/presentation/widgets/forms/password_text_field.dart';
-import 'package:rose_gold_app_messenger/features/supabase_authentication/presentation/widgets/show_auth_errors_sheet.dart';
 import 'package:rose_gold_app_messenger/themes/themes_all_export.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
@@ -113,7 +113,7 @@ class _AuthLoginFormState extends State<AuthLoginForm> {
                 await widget.onAuthenticate(email: _identifierController.text, password: _passwordController.text, rememberMe: _rememberMe);
                 final AuthSignals authSignals = kGetIt<AuthSignals>();
                 if (authSignals.authError.value != null && context.mounted) {
-                  showAuthErrorSheet(
+                  showErrorSheet(
                     context: context,
                     title: 'Échec de la connexion',
                     message: authSignals.authError.value!,

@@ -1,5 +1,33 @@
 # CHANGELOG rose_gold_app_messenger
 
+## 🚀 0.6.0 - 22/10/2026
+
+### Added
+
+- Added package for feedback. 
+- Added Rooms data sources, models, and repositories.
+- Added Rooms domain entities, repository contracts, and use cases.
+- Added Rooms presentation layer: controllers, view models, and reactive signals.
+- Added Rooms dependency injection containers.
+- Added RoomsThemeExtension.
+- Added logo.
+- Build two pages: one for the main page and one specific page with more infos and for update the room info.
+
+### Changed
+
+- Deleted `HomeTest()`, `HomeTest1()`.
+- Moved error ModalBottomSheet to `/core` folder.
+- Rename method name.
+- Added new errors messages and failure classes for rooms.
+- - Added user tag to make easy the search and invite users.
+
+### Fixed
+
+- Fix typo (not important).
+
+---
+
+
 ## 🚀 0.5.0 - 13/10/2026
 
 ### Added
@@ -7,7 +35,7 @@
 - Added User Presence data sources, models, and repositories.
 - Added User Presence domain entities, repository contracts, and use cases.
 - Added User Presence presentation layer: controllers, view models, and reactive signals.
-- Added core and authentication dependency injection containers.
+- Added User presence dependency injection containers.
 
 ### Changed
 

@@ -34,4 +34,13 @@ class ErrorMessage {
 
   /// Value: "Un problème est survenue lors de la détection de la présence de cette utilisateur."
   static const String userPresenceFailureMessage = 'Un problème est survenue lors de la détection de la présence de cette utilisateur.';
+
+  /// Value: "Un problème est survenue lors de la détection de la création du salon."
+  static const String roomCreateFailureMessage = 'Un problème est survenue lors de la détection de la création du salon.';
+
+  /// Value: "Un problème est survenue lors de la détection de la mise à jour du salon."
+  static const String roomUpdateFailureMessage = 'Un problème est survenue lors de la détection de la mise à jour du salon.';
+
+  /// Value: "Un problème est survenue lors du processus d‘invitation au salon."
+  static const String roomInvitationFailureMessage = 'Un problème est survenue lors du processus d‘invitation au salon.';
 }

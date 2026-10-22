@@ -15,7 +15,7 @@ void initSupabasePresenceDI() {
     ..registerLazySingleton<UserPresenceDataSource>(() => UserPresenceDataSourceImpl(client: kGetIt<SupabaseClient>()))
     /// Presences - Repositories
     ..registerLazySingleton<UserPresenceRepository>(() => UserPresenceRepositoryImpl(dataSource: kGetIt<UserPresenceDataSource>()))
-    /// Presences -  Use cases
+    /// Presences - Use cases
     ..registerLazySingleton<JoinGlobalChannelUseCase>(() => JoinGlobalChannelUseCase(kGetIt<UserPresenceRepository>()))
     ..registerLazySingleton<LeaveGlobalChannelUseCase>(() => LeaveGlobalChannelUseCase(kGetIt<UserPresenceRepository>()))
     ..registerLazySingleton<TrackPresenceUseCase>(() => TrackPresenceUseCase(kGetIt<UserPresenceRepository>()))

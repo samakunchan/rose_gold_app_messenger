@@ -45,6 +45,7 @@ class AuthSignals {
   FlutterSignal<bool> showPasswordScreen = signal(false);
   FlutterSignal<bool> isLoginTab = signal(true);
   FlutterSignal<String?> userConnectedName = signal(null);
+  FlutterSignal<String?> userConnectedTag = signal(null);
   FlutterSignal<String?> accountCreatedAt = signal(null);
 
   /// Concerne la gestion du remember me.
@@ -85,6 +86,7 @@ class AuthSignals {
         currentAuthSession.value = null;
         accountCreatedAt.value = null;
         userConnectedName.value = null;
+        userConnectedTag.value = null;
         if (failure is AuthenticationFailure) {
           authError.value = failure.message;
         }
@@ -97,6 +99,7 @@ class AuthSignals {
         authError.value = null;
         accountCreatedAt.value = AuthSessionViewModel(session).accountCreatedAt;
         userConnectedName.value = AuthSessionViewModel(session).username;
+        userConnectedTag.value = AuthSessionViewModel(session).userTag;
         if (currentAuthSession.value != null) {
           await userPresenceSignals.joinGlobalChannel(
             userId: currentAuthSession.value!.userId,
@@ -125,6 +128,7 @@ class AuthSignals {
         authError.value = failure.message;
         accountCreatedAt.value = null;
         userConnectedName.value = null;
+        userConnectedTag.value = null;
       },
       ifRight: (void value) async {
         if (kDebugMode) {
@@ -134,6 +138,7 @@ class AuthSignals {
         authError.value = null;
         accountCreatedAt.value = null;
         userConnectedName.value = null;
+        userConnectedTag.value = null;
         await checkSavedCredentials();
         await userPresenceSignals.leaveGlobalChannel();
       },
@@ -152,6 +157,7 @@ class AuthSignals {
         currentAuthSession.value = null;
         accountCreatedAt.value = null;
         userConnectedName.value = null;
+        userConnectedTag.value = null;
         if (failure is ServerFailure) {
           authError.value = failure.message;
         }
@@ -161,6 +167,7 @@ class AuthSignals {
         authError.value = null;
         accountCreatedAt.value = AuthSessionViewModel(session).accountCreatedAt;
         userConnectedName.value = AuthSessionViewModel(session).username;
+        userConnectedTag.value = AuthSessionViewModel(session).userTag;
         if (currentAuthSession.value != null) {
           await userPresenceSignals.joinGlobalChannel(
             userId: currentAuthSession.value!.userId,
@@ -291,6 +298,7 @@ class AuthSignals {
         authError.value = null;
         accountCreatedAt.value = null;
         userConnectedName.value = null;
+        userConnectedTag.value = null;
         await userPresenceSignals.leaveGlobalChannel();
       },
     );

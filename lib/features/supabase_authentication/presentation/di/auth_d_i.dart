@@ -22,7 +22,7 @@ void initSupabaseAuthDI() {
       () => AuthRepositoryImpl(remoteDataSource: kGetIt<AuthRemoteDataSource>(), cacheDataSource: kGetIt<CacheDataSource>()),
     )
     ..registerSingleton<CacheRepository>(CacheRepositoryImpl(cacheDataSource: kGetIt<CacheDataSource>()))
-    /// Auth -  Use cases
+    /// Auth - Use cases
     ..registerLazySingleton<SignInUseCase>(() => SignInUseCase(kGetIt<AuthRepository>()))
     ..registerLazySingleton<SignUpWithEmailUseCase>(() => SignUpWithEmailUseCase(kGetIt<AuthRepository>()))
     ..registerLazySingleton<SignUpWithPhoneUseCase>(() => SignUpWithPhoneUseCase(kGetIt<AuthRepository>()))

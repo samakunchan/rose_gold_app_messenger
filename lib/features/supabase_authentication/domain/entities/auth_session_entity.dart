@@ -59,6 +59,7 @@ class UserMetadataEntity extends Equatable {
     required this.sub,
     required this.targetApp,
     this.username,
+    this.userTag,
   });
 
   final String email;
@@ -67,7 +68,8 @@ class UserMetadataEntity extends Equatable {
   final String sub;
   final String targetApp;
   final String? username;
+  final String? userTag;
 
   @override
-  List<Object?> get props => <Object?>[sub, email, emailVerified, username, phoneVerified];
+  List<Object?> get props => <Object?>[sub, email, emailVerified, username, userTag, phoneVerified];
 }
