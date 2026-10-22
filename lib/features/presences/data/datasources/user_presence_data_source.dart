@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:rose_gold_app_messenger/features/presences/data/models/user_presence_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -36,9 +35,9 @@ class UserPresenceDataSourceImpl extends UserPresenceDataSource {
     return channel
         .onPresenceSync((_) {
           final List<SinglePresenceState> newState = channel.presenceState();
-          if (kDebugMode) {
-            print('sync: $newState');
-          }
+          // if (kDebugMode) {
+          //   print('sync: $newState');
+          // }
           _presenceController.add(newState);
         })
         .onPresenceJoin((RealtimePresenceJoinPayload payload) {
