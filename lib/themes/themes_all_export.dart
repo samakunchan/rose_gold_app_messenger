@@ -8,6 +8,7 @@ export 'app_card_theme.dart';
 export 'app_chip_theme.dart';
 export 'app_dialog_theme.dart';
 export 'app_input_decoration_theme.dart';
+export 'app_settings_theme.dart';
 export 'app_text_theme.dart';
 
 /// Extension
