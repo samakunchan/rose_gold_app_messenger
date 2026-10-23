@@ -4,7 +4,7 @@ import 'package:rose_gold_app_messenger/features/settings/domain/entities/theme_
 import 'package:rose_gold_app_messenger/features/settings/domain/repositories/theme_mode_repository.dart';
 import 'package:rose_gold_app_messenger/features/settings/domain/use_cases/params.dart';
 
-/// Accepter une invitation à entrer dans un salon.
+/// Changement de luminosité de l'écran.
 class ChangeThemeModeUseCase {
   new(this.repository);
   final ThemeModeRepository repository;
