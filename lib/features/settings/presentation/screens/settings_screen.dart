@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
+import 'package:rose_gold_app_messenger/features/settings/presentation/signals/languages_signals.dart';
 import 'package:rose_gold_app_messenger/features/settings/presentation/signals/theme_mode_signals.dart';
 import 'package:rose_gold_app_messenger/features/supabase_authentication/presentation/signals/auth_signals.dart';
 import 'package:rose_gold_app_messenger/themes/themes_statics_export.dart';
@@ -12,6 +13,7 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final AuthSignals authSignals = kGetIt<AuthSignals>();
     final ThemeModeSignals themeModeSignals = kGetIt<ThemeModeSignals>();
+    final LanguagesSignals languagesSignals = kGetIt<LanguagesSignals>();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Paramètres')),
@@ -77,6 +79,8 @@ class SettingsScreen extends StatelessWidget {
               ),
             ],
           ),
+
+          /// ICI
           SettingsSection(
             title: const Text('Général'),
             tiles: <AbstractSettingsTile>[
@@ -89,8 +93,8 @@ class SettingsScreen extends StatelessWidget {
               SettingsTile.navigation(
                 leading: const Icon(Icons.language),
                 title: const Text('Langue'),
-                value: const Text('Français'),
-                onPressed: (_) {},
+                value: SignalBuilder(builder: (_) => Text(languagesSignals.languageLabel.value)),
+                onPressed: (BuildContext context) => _openLanguageBottomSheet(context, languagesSignals),
               ),
               SettingsTile.switchTile(
                 leading: const Icon(Icons.notifications_outlined),
@@ -231,6 +235,55 @@ class SettingsScreen extends StatelessWidget {
 
     if (selectedMode != null && selectedMode != signals.themeMode.value) {
       await signals.changeThemeMode(selectedMode: selectedMode);
+    }
+  }
+
+  Future<void> _openLanguageBottomSheet(BuildContext context, LanguagesSignals signals) async {
+    final ThemeData theme = Theme.of(context);
+    final String? selectedLanguage = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (BuildContext sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: .only(
+              left: AppSpacing.spaceMd.value,
+              right: AppSpacing.spaceMd.value,
+              bottom: AppSpacing.spaceMd.value,
+            ),
+            child: Column(
+              mainAxisSize: .min,
+              crossAxisAlignment: .start,
+              spacing: AppSpacing.spaceXs.value,
+              children: <Widget>[
+                Padding(
+                  padding: .symmetric(horizontal: AppSpacing.spaceMd.value, vertical: AppSpacing.spaceXs.value),
+                  child: Text('Sélection des langues', style: theme.textTheme.titleMedium),
+                ),
+                ListTile(
+                  title: const Text('Français'),
+                  trailing: signals.code.value == 'fr' ? Icon(Icons.check, color: theme.colorScheme.primary) : null,
+                  onTap: () => Navigator.of(sheetContext).pop<String>('fr'),
+                ),
+                ListTile(
+                  title: const Text('English'),
+                  trailing: signals.code.value == 'en' ? Icon(Icons.check, color: theme.colorScheme.primary) : null,
+                  onTap: () => Navigator.of(sheetContext).pop<String>('en'),
+                ),
+                ListTile(
+                  title: const Text('Español'),
+                  trailing: signals.code.value == 'es' ? Icon(Icons.check, color: theme.colorScheme.primary) : null,
+                  onTap: () => Navigator.of(sheetContext).pop<String>('es'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (selectedLanguage != null && selectedLanguage != signals.code.value) {
+      await signals.changeLangues(languageCode: selectedLanguage);
     }
   }
 }

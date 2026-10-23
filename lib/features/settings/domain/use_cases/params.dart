@@ -9,3 +9,12 @@ class ThemeModeParams extends Equatable {
   @override
   List<Object?> get props => <Object?>[selectedThemeMode];
 }
+
+class LanguageParams extends Equatable {
+  const new({required this.languageCode});
+
+  final String languageCode;
+
+  @override
+  List<Object?> get props => <Object?>[languageCode];
+}

@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:rose_gold_app_messenger/extensions/context_extension.dart';
 import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/screens/rooms_screen.dart';
+import 'package:rose_gold_app_messenger/features/settings/presentation/signals/languages_signals.dart';
 import 'package:rose_gold_app_messenger/features/settings/presentation/signals/theme_mode_signals.dart';
 import 'package:rose_gold_app_messenger/features/supabase_authentication/presentation/screens/authentication_screen.dart';
 import 'package:rose_gold_app_messenger/features/supabase_authentication/presentation/screens/change_password_screen.dart';
@@ -17,6 +18,7 @@ class MainApp extends SignalWidget {
   Widget build(BuildContext context) {
     final AuthSignals authSignals = kGetIt<AuthSignals>();
     final ThemeModeSignals changeThemeModeSignals = kGetIt<ThemeModeSignals>();
+    final LanguagesSignals languagesSignals = kGetIt<LanguagesSignals>();
 
     return MaterialApp(
       navigatorKey: rootNavigatorKey,
@@ -25,6 +27,7 @@ class MainApp extends SignalWidget {
         AppLocalizations.delegate,
         ...GlobalMaterialLocalizations.delegates,
       ],
+      locale: Locale(languagesSignals.code.value),
       supportedLocales: AppLocalizations.supportedLocales,
       debugShowCheckedModeBanner: false,
       theme: MaterialTheme.light,
