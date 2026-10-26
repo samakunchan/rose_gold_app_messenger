@@ -5,5 +5,5 @@ class LanguageEntity extends Equatable {
   final String label;
   final String languageCode;
   @override
-  List<Object?> get props => [label, languageCode];
+  List<Object?> get props => <Object?>[label, languageCode];
 }

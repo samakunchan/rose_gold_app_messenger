@@ -88,17 +88,17 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
     final Map<String, dynamic> profileUpdates = <String, dynamic>{
       'updated_at': DateTime.now().toUtc().toIso8601String(),
-      if (username != null) 'username': username,
-      if (avatarUrl != null) 'avatar_url': avatarUrl,
-      if (phoneNumber != null) 'phone': phoneNumber,
+      'username': ?username,
+      'avatar_url': ?avatarUrl,
+      'phone': ?phoneNumber,
     };
 
     await client.from('profiles').update(profileUpdates).eq('id', currentUser.id);
 
     final Map<String, dynamic> metadataUpdates = <String, dynamic>{
-      if (username != null) 'username': username,
-      if (avatarUrl != null) 'avatar_url': avatarUrl,
-      if (phoneNumber != null) 'phone_number': phoneNumber,
+      'username': ?username,
+      'avatar_url': ?avatarUrl,
+      'phone_number': ?phoneNumber,
     };
 
     final UserResponse updatedUser = await client.auth.updateUser(

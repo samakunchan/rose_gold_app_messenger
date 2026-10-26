@@ -1,5 +1,4 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:material_ui/material_ui.dart';
 import 'package:rose_gold_app_messenger/features/settings/domain/entities/language_entity.dart';
 
 part 'language_model.freezed.dart';

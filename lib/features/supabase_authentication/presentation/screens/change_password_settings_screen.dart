@@ -40,7 +40,6 @@ class _ChangePasswordSettingScreenState extends State<ChangePasswordSettingScree
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    final FrontThemeExtension frontTheme = theme.extension<FrontThemeExtension>() ?? .light;
     final AuthSignals authSignals = kGetIt<AuthSignals>();
 
     final String password = _newPasswordController.text;
@@ -111,19 +110,6 @@ class _ChangePasswordSettingScreenState extends State<ChangePasswordSettingScree
     final String password = _newPasswordController.text;
     final String confirm = _confirmPasswordController.text;
     _canSubmit.value = password.length >= 6 && password == confirm;
-  }
-
-  Future<void> _handleCancel() async {
-    final AuthSignals authSignals = kGetIt<AuthSignals>();
-    authSignals.isLoginTab.value = true;
-    authSignals.showPasswordScreen.value = false;
-    await authSignals.signOut();
-
-    if (!mounted) {
-      return;
-    }
-
-    rootNavigatorKey.currentState?.popUntil((Route<dynamic> route) => route.isFirst);
   }
 
   Future<void> _handleSubmitPassword() async {

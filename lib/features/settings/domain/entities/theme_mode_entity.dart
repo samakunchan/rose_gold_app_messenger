@@ -6,5 +6,5 @@ class ThemeModeEntity extends Equatable {
   final String label;
   final ThemeMode mode;
   @override
-  List<Object?> get props => [label, mode];
+  List<Object?> get props => <Object?>[label, mode];
 }
