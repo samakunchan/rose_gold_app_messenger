@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:rose_gold_app_messenger/features/moderation/presentation/screens/blocked_users_screen.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class PrivacySettingsSection extends AbstractSettingsSection {
@@ -12,7 +13,11 @@ class PrivacySettingsSection extends AbstractSettingsSection {
         SettingsTile.navigation(
           leading: const Icon(Icons.block_outlined),
           title: const Text('Utilisateurs bloqués'),
-          onPressed: (_) {},
+          onPressed: (_) {
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const BlockedUsersScreen()),
+            );
+          },
         ),
         SettingsTile.navigation(
           leading: const Icon(Icons.download_outlined),

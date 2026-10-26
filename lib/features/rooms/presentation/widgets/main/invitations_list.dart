@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
+import 'package:rose_gold_app_messenger/features/moderation/presentation/widgets/report_invitation_bottom_sheet.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/signals/room_invitations_signals.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/view_models/room_invitation_view_model.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/widgets/monogram_user.dart';
@@ -86,6 +87,18 @@ class InvitationsList extends SignalWidget {
                               ),
                           ],
                         ),
+                      ),
+                      IconButton(
+                        tooltip: 'Signaler ou bloquer',
+                        icon: Icon(Icons.flag_outlined, size: 18, color: theme.colorScheme.error),
+                        onPressed: () {
+                          showModalBottomSheet<bool>(
+                            context: context,
+                            isScrollControlled: true,
+                            showDragHandle: true,
+                            builder: (_) => ReportInvitationBottomSheet(invitation: invitation),
+                          );
+                        },
                       ),
                     ],
                   ),
