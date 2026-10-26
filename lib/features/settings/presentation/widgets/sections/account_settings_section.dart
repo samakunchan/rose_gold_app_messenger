@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
 import 'package:rose_gold_app_messenger/features/settings/presentation/widgets/modals/delete_account_dialog.dart';
+import 'package:rose_gold_app_messenger/features/supabase_authentication/presentation/screens/change_password_settings_screen.dart';
 import 'package:rose_gold_app_messenger/features/supabase_authentication/presentation/signals/auth_signals.dart';
 import 'package:settings_ui/settings_ui.dart';
 
@@ -22,7 +23,9 @@ class AccountSettingsSection extends AbstractSettingsSection {
         SettingsTile.navigation(
           leading: const Icon(Icons.lock_outline),
           title: const Text('Changer le mot de passe'),
-          onPressed: (_) {},
+          onPressed: (_) {
+            Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const ChangePasswordSettingScreen()));
+          },
         ),
         SettingsTile.navigation(
           leading: const Icon(Icons.delete_forever_outlined),
