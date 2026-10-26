@@ -15,6 +15,8 @@ _UserMetadataModel _$UserMetadataModelFromJson(Map<String, dynamic> json) =>
       phoneVerified: json['phone_verified'] as bool,
       username: json['username'] as String?,
       userTag: json['user_tag'] as String?,
+      avatarUrl: json['avatar_url'] as String?,
+      phoneNumber: json['phone_number'] as String?,
     );
 
 Map<String, dynamic> _$UserMetadataModelToJson(_UserMetadataModel instance) =>
@@ -26,4 +28,6 @@ Map<String, dynamic> _$UserMetadataModelToJson(_UserMetadataModel instance) =>
       'phone_verified': instance.phoneVerified,
       'username': instance.username,
       'user_tag': instance.userTag,
+      'avatar_url': instance.avatarUrl,
+      'phone_number': instance.phoneNumber,
     };
