@@ -7,3 +7,4 @@ export 'sign_in_use_case.dart';
 export 'sign_out_use_case.dart';
 export 'sign_up_with_email_use_case.dart';
 export 'sign_up_with_phone_use_case.dart';
+export 'update_profile_use_case.dart';

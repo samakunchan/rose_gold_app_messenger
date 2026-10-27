@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
 import 'package:rose_gold_app_messenger/features/presences/presentation/signals/user_presence_signals.dart';
 import 'package:rose_gold_app_messenger/features/presences/presentation/view_models/user_presence_view_model.dart';

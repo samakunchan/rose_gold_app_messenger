@@ -79,3 +79,8 @@ class RoomsFailure extends Failure {
 class RoomsInvitationFailure extends Failure {
   const new({super.message = ErrorMessage.roomInvitationFailureMessage});
 }
+
+/// Value: "Un problème est survenue lors de la gestion des paramètres."
+class SettingsFailure extends Failure {
+  const new({super.message = ErrorMessage.defaultSettingFailureMessage});
+}

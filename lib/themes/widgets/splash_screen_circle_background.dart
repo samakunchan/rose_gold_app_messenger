@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class SplashScreenCircleBackground extends StatelessWidget {
   const new({this.top, this.bottom, this.right, this.left, this.size = 0, this.color, super.key});

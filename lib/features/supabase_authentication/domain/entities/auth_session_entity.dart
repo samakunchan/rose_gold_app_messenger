@@ -29,6 +29,7 @@ class AuthSessionEntity extends Equatable {
     required this.userMetadataEntity,
     this.email,
     this.phoneNumber,
+    this.avatarUrl,
     this.lastSignInAt,
     this.username,
     this.role,
@@ -41,6 +42,7 @@ class AuthSessionEntity extends Equatable {
   final String createdAt;
   final String? email;
   final String? phoneNumber;
+  final String? avatarUrl;
   final String? username;
   final String? lastSignInAt;
   final String? role;
@@ -48,7 +50,7 @@ class AuthSessionEntity extends Equatable {
   final String? emailConfirmedAt;
 
   @override
-  List<Object?> get props => <Object?>[id, email, phoneNumber, username, createdAt, lastSignInAt];
+  List<Object?> get props => <Object?>[id, email, phoneNumber, avatarUrl, username, createdAt, lastSignInAt];
 }
 
 class UserMetadataEntity extends Equatable {
@@ -60,6 +62,8 @@ class UserMetadataEntity extends Equatable {
     required this.targetApp,
     this.username,
     this.userTag,
+    this.avatarUrl,
+    this.phoneNumber,
   });
 
   final String email;
@@ -69,7 +73,9 @@ class UserMetadataEntity extends Equatable {
   final String targetApp;
   final String? username;
   final String? userTag;
+  final String? avatarUrl;
+  final String? phoneNumber;
 
   @override
-  List<Object?> get props => <Object?>[sub, email, emailVerified, username, userTag, phoneVerified];
+  List<Object?> get props => <Object?>[sub, email, emailVerified, username, userTag, avatarUrl, phoneNumber, phoneVerified];
 }

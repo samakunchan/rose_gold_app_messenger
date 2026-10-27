@@ -1,5 +1,35 @@
 # CHANGELOG rose_gold_app_messenger
 
+## 🚀 0.7.0 - 27/10/2026
+
+### Added
+
+- Added change password screen into the settings screen.
+- Added language selector to the settings screen.
+- Added moderation feature to invitation card only for the moment.
+- Added a page to manage blocked users.
+- Added button to report user from invitation.
+- Added custom feedback form
+- Update feedback service and use a bucket to store images.
+- Set up the feedback to main file.
+- Added http package to send issues to Github issues.
+- Fix feedback size form.
+- Added screens.
+- Added pages to Supabase and read by using edge functions.
+
+### Changed
+
+- Update material by added new package material_ui and cupertino_ui (Google Recommandation).
+- Ran a command to update all files in once.
+
+### Fixed
+
+- Fix linters.
+- Fix localization with the new material recommandation.
+- Fix the saving for language selection and theme mode selection.
+
+---
+
 ## 🚀 0.6.0 - 22/10/2026
 
 ### Added
@@ -19,7 +49,7 @@
 - Moved error ModalBottomSheet to `/core` folder.
 - Rename method name.
 - Added new errors messages and failure classes for rooms.
-- - Added user tag to make easy the search and invite users.
+- Added user tag to make easy the search and invite users.
 
 ### Fixed
 

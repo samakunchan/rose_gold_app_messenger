@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$InviterModel {
 
- String? get id; String get username;@JsonKey(name: 'user_tag') String get userTag;@JsonKey(name: 'avatar_url') String? get avatarUrl;
+ String get username;@JsonKey(name: 'user_tag') String get userTag; String? get id;@JsonKey(name: 'avatar_url') String? get avatarUrl;
 /// Create a copy of InviterModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +30,20 @@ $InviterModelCopyWith<InviterModel> get copyWith => _$InviterModelCopyWithImpl<I
 @override
 bool operator ==(Object other) {
   final _this = this as InviterModel;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is InviterModel&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.username, _this.username) || other.username == _this.username)&&(identical(other.userTag, _this.userTag) || other.userTag == _this.userTag)&&(identical(other.avatarUrl, _this.avatarUrl) || other.avatarUrl == _this.avatarUrl));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is InviterModel&&(identical(other.username, _this.username) || other.username == _this.username)&&(identical(other.userTag, _this.userTag) || other.userTag == _this.userTag)&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.avatarUrl, _this.avatarUrl) || other.avatarUrl == _this.avatarUrl));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as InviterModel;
-  return Object.hash(runtimeType,_this.id,_this.username,_this.userTag,_this.avatarUrl);
+  return Object.hash(runtimeType,_this.username,_this.userTag,_this.id,_this.avatarUrl);
 }
 
 @override
 String toString() {
   final _this = this as InviterModel;
-  return 'InviterModel(id: ${_this.id}, username: ${_this.username}, userTag: ${_this.userTag}, avatarUrl: ${_this.avatarUrl})';
+  return 'InviterModel(username: ${_this.username}, userTag: ${_this.userTag}, id: ${_this.id}, avatarUrl: ${_this.avatarUrl})';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $InviterModelCopyWith<$Res>  {
   factory $InviterModelCopyWith(InviterModel value, $Res Function(InviterModel) _then) = _$InviterModelCopyWithImpl;
 @useResult
 $Res call({
- String? id, String username,@JsonKey(name: 'user_tag') String userTag,@JsonKey(name: 'avatar_url') String? avatarUrl
+ String username,@JsonKey(name: 'user_tag') String userTag, String? id,@JsonKey(name: 'avatar_url') String? avatarUrl
 });
 
 
@@ -71,12 +71,12 @@ class _$InviterModelCopyWithImpl<$Res>
 
 /// Create a copy of InviterModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = freezed,Object? username = null,Object? userTag = null,Object? avatarUrl = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? username = null,Object? userTag = null,Object? id = freezed,Object? avatarUrl = freezed,}) {
   return _then(InviterModel(
-id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String?,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
+username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
 as String,userTag: null == userTag ? _self.userTag : userTag // ignore: cast_nullable_to_non_nullable
-as String,avatarUrl: freezed == avatarUrl ? _self.avatarUrl : avatarUrl // ignore: cast_nullable_to_non_nullable
+as String,id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String?,avatarUrl: freezed == avatarUrl ? _self.avatarUrl : avatarUrl // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -162,10 +162,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String? id,  String username, @JsonKey(name: 'user_tag')  String userTag, @JsonKey(name: 'avatar_url')  String? avatarUrl)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String username, @JsonKey(name: 'user_tag')  String userTag,  String? id, @JsonKey(name: 'avatar_url')  String? avatarUrl)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _InviterModel() when $default != null:
-return $default(_that.id,_that.username,_that.userTag,_that.avatarUrl);case _:
+return $default(_that.username,_that.userTag,_that.id,_that.avatarUrl);case _:
   return orElse();
 
 }
@@ -183,10 +183,10 @@ return $default(_that.id,_that.username,_that.userTag,_that.avatarUrl);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String? id,  String username, @JsonKey(name: 'user_tag')  String userTag, @JsonKey(name: 'avatar_url')  String? avatarUrl)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String username, @JsonKey(name: 'user_tag')  String userTag,  String? id, @JsonKey(name: 'avatar_url')  String? avatarUrl)  $default,) {final _that = this;
 switch (_that) {
 case _InviterModel():
-return $default(_that.id,_that.username,_that.userTag,_that.avatarUrl);case _:
+return $default(_that.username,_that.userTag,_that.id,_that.avatarUrl);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -203,10 +203,10 @@ return $default(_that.id,_that.username,_that.userTag,_that.avatarUrl);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String? id,  String username, @JsonKey(name: 'user_tag')  String userTag, @JsonKey(name: 'avatar_url')  String? avatarUrl)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String username, @JsonKey(name: 'user_tag')  String userTag,  String? id, @JsonKey(name: 'avatar_url')  String? avatarUrl)?  $default,) {final _that = this;
 switch (_that) {
 case _InviterModel() when $default != null:
-return $default(_that.id,_that.username,_that.userTag,_that.avatarUrl);case _:
+return $default(_that.username,_that.userTag,_that.id,_that.avatarUrl);case _:
   return null;
 
 }
@@ -218,12 +218,12 @@ return $default(_that.id,_that.username,_that.userTag,_that.avatarUrl);case _:
 @JsonSerializable()
 
 class _InviterModel implements InviterModel {
-   _InviterModel({this.id, required this.username, @JsonKey(name: 'user_tag') required this.userTag, @JsonKey(name: 'avatar_url') this.avatarUrl});
+   _InviterModel({required this.username, @JsonKey(name: 'user_tag') required this.userTag, this.id, @JsonKey(name: 'avatar_url') this.avatarUrl});
   factory _InviterModel.fromJson(Map<String, dynamic> json) => _$InviterModelFromJson(json);
 
-@override final  String? id;
 @override final  String username;
 @override@JsonKey(name: 'user_tag') final  String userTag;
+@override final  String? id;
 @override@JsonKey(name: 'avatar_url') final  String? avatarUrl;
 
 /// Create a copy of InviterModel
@@ -239,18 +239,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _InviterModel&&(identical(other.id, id) || other.id == id)&&(identical(other.username, username) || other.username == username)&&(identical(other.userTag, userTag) || other.userTag == userTag)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _InviterModel&&(identical(other.username, username) || other.username == username)&&(identical(other.userTag, userTag) || other.userTag == userTag)&&(identical(other.id, id) || other.id == id)&&(identical(other.avatarUrl, avatarUrl) || other.avatarUrl == avatarUrl));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,username,userTag,avatarUrl);
+    return Object.hash(runtimeType,username,userTag,id,avatarUrl);
 }
 
 @override
 String toString() {
-    return 'InviterModel(id: $id, username: $username, userTag: $userTag, avatarUrl: $avatarUrl)';
+    return 'InviterModel(username: $username, userTag: $userTag, id: $id, avatarUrl: $avatarUrl)';
 }
 
 
@@ -261,7 +261,7 @@ abstract mixin class _$InviterModelCopyWith<$Res> implements $InviterModelCopyWi
   factory _$InviterModelCopyWith(_InviterModel value, $Res Function(_InviterModel) _then) = __$InviterModelCopyWithImpl;
 @override @useResult
 $Res call({
- String? id, String username,@JsonKey(name: 'user_tag') String userTag,@JsonKey(name: 'avatar_url') String? avatarUrl
+ String username,@JsonKey(name: 'user_tag') String userTag, String? id,@JsonKey(name: 'avatar_url') String? avatarUrl
 });
 
 
@@ -278,12 +278,12 @@ class __$InviterModelCopyWithImpl<$Res>
 
 /// Create a copy of InviterModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = freezed,Object? username = null,Object? userTag = null,Object? avatarUrl = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? username = null,Object? userTag = null,Object? id = freezed,Object? avatarUrl = freezed,}) {
   return _then(_InviterModel(
-id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String?,username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
+username: null == username ? _self.username : username // ignore: cast_nullable_to_non_nullable
 as String,userTag: null == userTag ? _self.userTag : userTag // ignore: cast_nullable_to_non_nullable
-as String,avatarUrl: freezed == avatarUrl ? _self.avatarUrl : avatarUrl // ignore: cast_nullable_to_non_nullable
+as String,id: freezed == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String?,avatarUrl: freezed == avatarUrl ? _self.avatarUrl : avatarUrl // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

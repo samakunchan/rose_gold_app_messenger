@@ -43,4 +43,7 @@ class ErrorMessage {
 
   /// Value: "Un problème est survenue lors du processus d‘invitation au salon."
   static const String roomInvitationFailureMessage = 'Un problème est survenue lors du processus d‘invitation au salon.';
+
+  /// Value: "Un problème est survenue lors de la gestion des paramètres."
+  static const String defaultSettingFailureMessage = 'Un problème est survenue lors de la gestion des paramètres.';
 }

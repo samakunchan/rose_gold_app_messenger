@@ -103,3 +103,22 @@ class ChangePasswordParams extends Equatable {
   @override
   List<Object?> get props => <Object?>[email, password, token];
 }
+
+/// Model
+/// ```json
+/// {
+///   "username": "John",
+///   "avatarUrl": "https://...",
+///   "phoneNumber": "+33600000000",
+/// }
+/// ```
+class UpdateProfileParams extends Equatable {
+  const new({this.username, this.avatarUrl, this.phoneNumber});
+
+  final String? username;
+  final String? avatarUrl;
+  final String? phoneNumber;
+
+  @override
+  List<Object?> get props => <Object?>[username, avatarUrl, phoneNumber];
+}

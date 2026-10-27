@@ -21,6 +21,7 @@ class AuthSignals {
     required this.deleteAccountUseCase,
     required this.forgotPasswordRequestUseCase,
     required this.changePasswordUseCase,
+    required this.updateProfileUseCase,
     required this.getRememberedCredentials,
     required this.userPresenceSignals,
   });
@@ -32,6 +33,7 @@ class AuthSignals {
   final DeleteAccountUseCase deleteAccountUseCase;
   final ForgotPasswordRequestUseCase forgotPasswordRequestUseCase;
   final ChangePasswordUseCase changePasswordUseCase;
+  final UpdateProfileUseCase updateProfileUseCase;
   final GetRememberedCredentials getRememberedCredentials;
   final UserPresenceSignals userPresenceSignals;
 
@@ -46,6 +48,8 @@ class AuthSignals {
   FlutterSignal<bool> isLoginTab = signal(true);
   FlutterSignal<String?> userConnectedName = signal(null);
   FlutterSignal<String?> userConnectedTag = signal(null);
+  FlutterSignal<String?> userConnectedAvatarUrl = signal(null);
+  FlutterSignal<String?> userConnectedPhone = signal(null);
   FlutterSignal<String?> accountCreatedAt = signal(null);
 
   /// Concerne la gestion du remember me.
@@ -95,11 +99,14 @@ class AuthSignals {
         if (kDebugMode) {
           print('ifRight: $session');
         }
-        currentAuthSession.value = AuthSessionViewModel(session);
+        final AuthSessionViewModel sessionViewModel = AuthSessionViewModel(session);
+        currentAuthSession.value = sessionViewModel;
         authError.value = null;
-        accountCreatedAt.value = AuthSessionViewModel(session).accountCreatedAt;
-        userConnectedName.value = AuthSessionViewModel(session).username;
-        userConnectedTag.value = AuthSessionViewModel(session).userTag;
+        accountCreatedAt.value = sessionViewModel.accountCreatedAt;
+        userConnectedName.value = sessionViewModel.username;
+        userConnectedTag.value = sessionViewModel.userTag;
+        userConnectedAvatarUrl.value = sessionViewModel.avatarUrl;
+        userConnectedPhone.value = sessionViewModel.phoneNumber;
         if (currentAuthSession.value != null) {
           await userPresenceSignals.joinGlobalChannel(
             userId: currentAuthSession.value!.userId,
@@ -163,11 +170,14 @@ class AuthSignals {
         }
       },
       ifRight: (AuthSessionEntity session) async {
-        currentAuthSession.value = AuthSessionViewModel(session);
+        final AuthSessionViewModel sessionViewModel = AuthSessionViewModel(session);
+        currentAuthSession.value = sessionViewModel;
         authError.value = null;
-        accountCreatedAt.value = AuthSessionViewModel(session).accountCreatedAt;
-        userConnectedName.value = AuthSessionViewModel(session).username;
-        userConnectedTag.value = AuthSessionViewModel(session).userTag;
+        accountCreatedAt.value = sessionViewModel.accountCreatedAt;
+        userConnectedName.value = sessionViewModel.username;
+        userConnectedTag.value = sessionViewModel.userTag;
+        userConnectedAvatarUrl.value = sessionViewModel.avatarUrl;
+        userConnectedPhone.value = sessionViewModel.phoneNumber;
         if (currentAuthSession.value != null) {
           await userPresenceSignals.joinGlobalChannel(
             userId: currentAuthSession.value!.userId,
@@ -275,6 +285,39 @@ class AuthSignals {
       },
     );
     isLoading.value = false;
+  }
+
+  Future<bool> updateProfile({String? username, String? avatarUrl, String? phoneNumber}) async {
+    isLoading.value = true;
+    authError.value = null;
+
+    final Either<Failure, AuthSessionEntity> result = await updateProfileUseCase(
+      UpdateProfileParams(username: username, avatarUrl: avatarUrl, phoneNumber: phoneNumber),
+    );
+
+    bool success = false;
+    await result.fold(
+      ifLeft: (Failure failure) async {
+        if (kDebugMode) {
+          print('ifLeft: $failure');
+        }
+        authError.value = failure.message;
+      },
+      ifRight: (AuthSessionEntity session) async {
+        final AuthSessionViewModel sessionViewModel = AuthSessionViewModel(session);
+        currentAuthSession.value = sessionViewModel;
+        authError.value = null;
+        accountCreatedAt.value = sessionViewModel.accountCreatedAt;
+        userConnectedName.value = sessionViewModel.username;
+        userConnectedTag.value = sessionViewModel.userTag;
+        userConnectedAvatarUrl.value = sessionViewModel.avatarUrl;
+        userConnectedPhone.value = sessionViewModel.phoneNumber;
+        success = true;
+      },
+    );
+
+    isLoading.value = false;
+    return success;
   }
 
   Future<void> deleteAppMessengerAccount() async {

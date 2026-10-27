@@ -13,6 +13,8 @@ class AuthSessionViewModel {
   String get userId => _entity.id;
   String get username => _entity.username ?? '';
   String get userTag => _entity.userMetadataEntity.userTag ?? '';
+  String get avatarUrl => _entity.avatarUrl ?? _entity.userMetadataEntity.avatarUrl ?? '';
+  String get phoneNumber => _entity.phoneNumber ?? _entity.userMetadataEntity.phoneNumber ?? '';
   String get lastConnectionAt => timeago.format(DateTime.parse(_entity.lastSignInAt ?? DateTime.now().toString()), locale: _locale);
   String get accountCreatedAt => timeago.format(DateTime.parse(_entity.createdAt), locale: _locale);
 }

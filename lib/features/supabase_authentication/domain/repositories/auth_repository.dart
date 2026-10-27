@@ -14,6 +14,7 @@ abstract class AuthRepository {
   Future<Either<Failure, AuthSessionEntity>> signUpWithEmail({required SignUpWithEmailParams params});
   Future<Either<Failure, AuthSessionEntity>> signUpWithPhone({required SignUpWithPhoneParams params});
   Future<Either<Failure, AuthSessionEntity>> changePassword({required ChangePasswordParams params});
+  Future<Either<Failure, AuthSessionEntity>> updateProfile({required UpdateProfileParams params});
   Future<Either<Failure, AuthSessionEntity>> getSession();
   Future<Either<Failure, void>> forgotPassword({required ForgotPasswordParams params});
   Future<Either<Failure, void>> signOut();

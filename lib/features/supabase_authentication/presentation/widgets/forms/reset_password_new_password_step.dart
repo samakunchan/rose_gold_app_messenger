@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
 import 'package:rose_gold_app_messenger/features/supabase_authentication/presentation/signals/auth_signals.dart';
 import 'package:rose_gold_app_messenger/features/supabase_authentication/presentation/widgets/forms/password_text_field.dart';

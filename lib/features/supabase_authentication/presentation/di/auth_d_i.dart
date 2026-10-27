@@ -29,6 +29,7 @@ void initSupabaseAuthDI() {
     ..registerLazySingleton<SignOutUseCase>(() => SignOutUseCase(kGetIt<AuthRepository>()))
     ..registerLazySingleton<ForgotPasswordRequestUseCase>(() => ForgotPasswordRequestUseCase(kGetIt<AuthRepository>()))
     ..registerLazySingleton<ChangePasswordUseCase>(() => ChangePasswordUseCase(kGetIt<AuthRepository>()))
+    ..registerLazySingleton<UpdateProfileUseCase>(() => UpdateProfileUseCase(kGetIt<AuthRepository>()))
     ..registerLazySingleton<DeleteAccountUseCase>(() => DeleteAccountUseCase(kGetIt<AuthRepository>()))
     ..registerLazySingleton<GetSessionUseCase>(() => GetSessionUseCase(kGetIt<AuthRepository>()))
     ..registerLazySingleton<GetRememberedCredentials>(() => GetRememberedCredentials(kGetIt<CacheRepository>()))
@@ -42,6 +43,7 @@ void initSupabaseAuthDI() {
         deleteAccountUseCase: kGetIt<DeleteAccountUseCase>(),
         forgotPasswordRequestUseCase: kGetIt<ForgotPasswordRequestUseCase>(),
         changePasswordUseCase: kGetIt<ChangePasswordUseCase>(),
+        updateProfileUseCase: kGetIt<UpdateProfileUseCase>(),
         getRememberedCredentials: kGetIt<GetRememberedCredentials>(),
         userPresenceSignals: kGetIt<UserPresenceSignals>(),
       ),
