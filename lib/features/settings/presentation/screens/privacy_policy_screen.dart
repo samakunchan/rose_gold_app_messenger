@@ -108,7 +108,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
           const LegalSectionCard(
             title: '4. Hébergement & Sous-traitants techniques',
             paragraphs: <String>[
-              "Les données nécessaires au fonctionnement du service sont hébergées de manière sécurisée auprès des sous-traitants techniques suivants :",
+              'Les données nécessaires au fonctionnement du service sont hébergées de manière sécurisée auprès des sous-traitants techniques suivants :',
             ],
             bulletPoints: <String>[
               'Infrastructure Backend & Base de données : Supabase (PostgreSQL avec isolation stricte par Row Level Security et stockage sécurisé).',

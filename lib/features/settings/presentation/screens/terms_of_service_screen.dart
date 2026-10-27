@@ -93,7 +93,7 @@ class TermsOfServiceScreen extends StatelessWidget {
           const LegalSectionCard(
             title: '3. Code de conduite & Tolérance zéro (Contenus Utilisateurs)',
             paragraphs: <String>[
-              "$_publisherName applique une politique de tolérance zéro envers les contenus illicites et les comportements abusifs. En utilisant Rose Gold App Messenger, vous vous interdisez formellement de :",
+              '$_publisherName applique une politique de tolérance zéro envers les contenus illicites et les comportements abusifs. En utilisant Rose Gold App Messenger, vous vous interdisez formellement de :',
             ],
             bulletPoints: <String>[
               "Harceler, menacer, intimider ou diffamer d'autres utilisateurs via des invitations ou au sein des salons privés.",
@@ -110,7 +110,7 @@ class TermsOfServiceScreen extends StatelessWidget {
             bulletPoints: <String>[
               "Chaque utilisateur dispose d'outils intégrés permettant de bloquer immédiatement un utilisateur et de signaler toute invitation ou comportement abusif.",
               'Vous pouvez consulter et gérer la liste des comptes bloqués à tout moment depuis Paramètres → Utilisateurs bloqués.',
-              "Sanctions : En cas de violation des présentes CGU ou de signalements avérés, $_publisherName se réserve le droit de suspendre ou de supprimer définitivement le compte contrevenant, sans préavis ni indemnité.",
+              'Sanctions : En cas de violation des présentes CGU ou de signalements avérés, $_publisherName se réserve le droit de suspendre ou de supprimer définitivement le compte contrevenant, sans préavis ni indemnité.',
             ],
           ),
           const LegalSectionCard(

@@ -78,7 +78,6 @@ class FeedbackService {
       final String sanitizedDevice = deviceModel.replaceAll(RegExp(r'[^a-zA-Z0-9\-]'), '_');
       final String filename = '$datePart-feedback-$sanitizedDevice-${DateTime.now().millisecondsSinceEpoch}.png';
       final String storagePath = '$userId/$filename';
-      print('LInk $storagePath');
 
       // 1. Upload screenshot to Supabase Storage bucket 'feedbacks'
       await supabase.storage
