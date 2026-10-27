@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/signals/room_members_signals.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/signals/rooms_signals.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/widgets/edit/edit_room_member_view.dart';

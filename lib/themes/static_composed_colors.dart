@@ -2,7 +2,7 @@
 // GRADIENTS (Tailwind: Idle & Pressed Button States)
 // ============================================================================
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:rose_gold_app_messenger/themes/themes_statics_export.dart';
 
 /// Tailwind "bg-gradient-to-r from-primary-container via-surface-tint to-primary" (Default idle state)

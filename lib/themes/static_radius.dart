@@ -2,7 +2,7 @@
 // RADIUS SYSTEM (High Roundedness & Pill Contours)
 // ============================================================================
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 enum AppRadius {
   /// Size: 3.0 (speech bubble tail notch)

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class RoomAvatarTextField extends StatelessWidget {
   const new({required this.avatarUrlController, this.isLoading = false, this.onChanged, this.onClear, super.key});

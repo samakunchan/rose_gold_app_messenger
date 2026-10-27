@@ -1,7 +1,7 @@
 import 'dart:ui' as ui;
 
-import 'package:flutter/material.dart';
 import 'package:gradient_borders/box_borders/gradient_box_border.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:rose_gold_app_messenger/themes/themes_statics_export.dart';
 
 class FrontThemeExtension extends ThemeExtension<FrontThemeExtension> {

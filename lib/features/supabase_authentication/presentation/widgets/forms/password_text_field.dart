@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:rose_gold_app_messenger/themes/static_spacing.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 

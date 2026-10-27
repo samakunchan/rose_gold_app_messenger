@@ -9,6 +9,7 @@ abstract class AuthRemoteDataSource {
   Future<void> deleteAccount();
 
   Future<UserResponse> changePassword({required String email, required String password, String? token});
+  Future<UserResponse> updateProfile({String? username, String? avatarUrl, String? phoneNumber});
 
   Future<Session?> getSession();
   Future<String?> getUserTag({required String userId});
@@ -75,6 +76,35 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     final UserResponse updatedUser = await client.auth.updateUser(UserAttributes(password: password));
 
     await signOut();
+    return updatedUser;
+  }
+
+  @override
+  Future<UserResponse> updateProfile({String? username, String? avatarUrl, String? phoneNumber}) async {
+    final User? currentUser = client.auth.currentUser;
+    if (currentUser == null) {
+      throw const AuthException('Utilisateur non connecté.');
+    }
+
+    final Map<String, dynamic> profileUpdates = <String, dynamic>{
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+      'username': ?username,
+      'avatar_url': ?avatarUrl,
+      'phone': ?phoneNumber,
+    };
+
+    await client.from('profiles').update(profileUpdates).eq('id', currentUser.id);
+
+    final Map<String, dynamic> metadataUpdates = <String, dynamic>{
+      'username': ?username,
+      'avatar_url': ?avatarUrl,
+      'phone_number': ?phoneNumber,
+    };
+
+    final UserResponse updatedUser = await client.auth.updateUser(
+      UserAttributes(data: metadataUpdates),
+    );
+
     return updatedUser;
   }
 

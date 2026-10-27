@@ -43,7 +43,8 @@ class AuthRepositoryImpl implements AuthRepository {
       final AuthSessionEntity userEntity = AuthSessionEntity(
         id: user.id,
         email: user.email ?? '',
-        phoneNumber: user.phone,
+        phoneNumber: userMetadataModel.phoneNumber ?? user.phone,
+        avatarUrl: userMetadataModel.avatarUrl,
         userMetadataEntity: userMetadataModel.toEntity(),
         username: userMetadataModel.username,
         createdAt: user.createdAt,
@@ -87,7 +88,8 @@ class AuthRepositoryImpl implements AuthRepository {
       final AuthSessionEntity userEntity = AuthSessionEntity(
         id: user.id,
         email: user.email ?? '',
-        phoneNumber: user.phone,
+        phoneNumber: userMetadataModel.phoneNumber ?? user.phone,
+        avatarUrl: userMetadataModel.avatarUrl,
         userMetadataEntity: userMetadataModel.toEntity(),
         username: userMetadataModel.username,
         createdAt: user.createdAt,
@@ -119,7 +121,8 @@ class AuthRepositoryImpl implements AuthRepository {
       final AuthSessionEntity userEntity = AuthSessionEntity(
         id: user.id,
         email: user.email ?? '',
-        phoneNumber: user.phone,
+        phoneNumber: userMetadataModel.phoneNumber ?? user.phone,
+        avatarUrl: userMetadataModel.avatarUrl,
         userMetadataEntity: userMetadataModel.toEntity(),
         username: userMetadataModel.username,
         createdAt: user.createdAt,
@@ -182,13 +185,58 @@ class AuthRepositoryImpl implements AuthRepository {
       final AuthSessionEntity userEntity = AuthSessionEntity(
         id: user.id,
         email: user.email ?? '',
-        phoneNumber: user.phone,
+        phoneNumber: userMetadataModel.phoneNumber ?? user.phone,
+        avatarUrl: userMetadataModel.avatarUrl,
         userMetadataEntity: userMetadataModel.toEntity(),
         username: userMetadataModel.username,
         createdAt: user.createdAt,
         role: user.role,
         invitedAt: user.invitedAt,
         emailConfirmedAt: user.emailConfirmedAt,
+      );
+
+      return Right<Failure, AuthSessionEntity>(userEntity);
+    } on AuthApiException catch (e) {
+      return Left<Failure, AuthSessionEntity>(AuthenticationFailure(message: e.message));
+    } on Object catch (e) {
+      return Left<Failure, AuthSessionEntity>(ServerFailure(message: e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, AuthSessionEntity>> updateProfile({required UpdateProfileParams params}) async {
+    try {
+      final UserResponse userResponse = await remoteDataSource.updateProfile(
+        username: params.username,
+        avatarUrl: params.avatarUrl,
+        phoneNumber: params.phoneNumber,
+      );
+
+      final User? user = userResponse.user;
+      if (user == null) {
+        return const Left<Failure, AuthSessionEntity>(AuthenticationFailure(message: 'Session not found'));
+      }
+
+      UserMetadataModel userMetadataModel = UserMetadataModel.fromJson(user.userMetadata ?? <String, dynamic>{});
+      if (userMetadataModel.userTag == null || userMetadataModel.userTag!.isEmpty) {
+        final String? tag = await remoteDataSource.getUserTag(userId: user.id);
+        if (tag != null) {
+          userMetadataModel = userMetadataModel.copyWith(userTag: tag);
+        }
+      }
+
+      final AuthSessionEntity userEntity = AuthSessionEntity(
+        id: user.id,
+        email: user.email,
+        phoneNumber: userMetadataModel.phoneNumber ?? user.phone,
+        avatarUrl: userMetadataModel.avatarUrl,
+        userMetadataEntity: userMetadataModel.toEntity(),
+        username: userMetadataModel.username,
+        createdAt: user.createdAt,
+        role: user.role,
+        invitedAt: user.invitedAt,
+        emailConfirmedAt: user.emailConfirmedAt,
+        lastSignInAt: user.lastSignInAt,
       );
 
       return Right<Failure, AuthSessionEntity>(userEntity);
@@ -218,7 +266,8 @@ class AuthRepositoryImpl implements AuthRepository {
       final AuthSessionEntity userEntity = AuthSessionEntity(
         id: user.id,
         email: user.email,
-        phoneNumber: user.phone,
+        phoneNumber: userMetadataModel.phoneNumber ?? user.phone,
+        avatarUrl: userMetadataModel.avatarUrl,
         userMetadataEntity: userMetadataModel.toEntity(),
         username: userMetadataModel.username,
         createdAt: user.createdAt,

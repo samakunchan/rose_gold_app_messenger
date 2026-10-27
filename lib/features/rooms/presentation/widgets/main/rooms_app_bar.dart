@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:rose_gold_app_messenger/features/settings/presentation/screens/settings_screen.dart';
 import 'package:rose_gold_app_messenger/themes/static_spacing.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
@@ -10,7 +11,6 @@ class RoomsAppBar extends SignalWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    // final FeedBackStore feedbackStore = kGetIt<FeedBackStore>();
 
     return AppBar(
       centerTitle: true,
@@ -25,7 +25,13 @@ class RoomsAppBar extends SignalWidget implements PreferredSizeWidget {
       ),
       actions: <Widget>[
         IconButton(
-          onPressed: () {},
+          onPressed: () {
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const SettingsScreen(),
+              ),
+            );
+          },
           icon: const Icon(Icons.menu),
         ),
       ],
