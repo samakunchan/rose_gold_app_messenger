@@ -5,4 +5,5 @@ import 'package:rose_gold_app_messenger/features/settings/domain/use_cases/param
 
 abstract class LanguagesRepository {
   Future<Either<Failure, LanguageEntity>> changeLanguages({required LanguageParams params});
+  LanguageEntity getSavedLanguage();
 }

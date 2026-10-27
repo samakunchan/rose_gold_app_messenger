@@ -9,12 +9,17 @@ import 'package:rose_gold_app_messenger/features/settings/domain/use_cases/chang
 import 'package:rose_gold_app_messenger/features/settings/domain/use_cases/change_theme_mode_use_case.dart';
 import 'package:rose_gold_app_messenger/features/settings/presentation/signals/languages_signals.dart';
 import 'package:rose_gold_app_messenger/features/settings/presentation/signals/theme_mode_signals.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void initSettingsDI() {
   kGetIt
     /// Settings
-    ..registerLazySingleton<ThemeModeDataSources>(ThemeModeDataSourcesImpl.new)
-    ..registerLazySingleton<LanguagesDataSources>(LanguagesDataSourcesImpl.new)
+    ..registerLazySingleton<ThemeModeDataSources>(
+      () => ThemeModeDataSourcesImpl(preferences: kGetIt<SharedPreferencesWithCache>()),
+    )
+    ..registerLazySingleton<LanguagesDataSources>(
+      () => LanguagesDataSourcesImpl(preferences: kGetIt<SharedPreferencesWithCache>()),
+    )
     /// Settings - Repositories
     ..registerLazySingleton<ThemeModeRepository>(() => ThemeModeRepositoryImpl(dataSources: kGetIt<ThemeModeDataSources>()))
     ..registerLazySingleton<LanguagesRepository>(() => LanguagesRepositoryImpl(dataSources: kGetIt<LanguagesDataSources>()))
@@ -23,10 +28,16 @@ void initSettingsDI() {
     ..registerLazySingleton<ChangeLanguageUseCase>(() => ChangeLanguageUseCase(kGetIt<LanguagesRepository>()))
     /// Settings - Signals
     ..registerLazySingleton<ThemeModeSignals>(
-      () => ThemeModeSignals(changeThemeModeUseCase: kGetIt<ChangeThemeModeUseCase>()),
+      () => ThemeModeSignals(
+        changeThemeModeUseCase: kGetIt<ChangeThemeModeUseCase>(),
+        themeModeRepository: kGetIt<ThemeModeRepository>(),
+      ),
     )
     ..registerLazySingleton<LanguagesSignals>(
-      () => LanguagesSignals(changeLanguageUseCase: kGetIt<ChangeLanguageUseCase>()),
+      () => LanguagesSignals(
+        changeLanguageUseCase: kGetIt<ChangeLanguageUseCase>(),
+        languagesRepository: kGetIt<LanguagesRepository>(),
+      ),
     )
   //
   ;

@@ -5,4 +5,5 @@ import 'package:rose_gold_app_messenger/features/settings/domain/use_cases/param
 
 abstract class ThemeModeRepository {
   Future<Either<Failure, ThemeModeEntity>> changeThemeMode({required ThemeModeParams params});
+  ThemeModeEntity getSavedThemeMode();
 }

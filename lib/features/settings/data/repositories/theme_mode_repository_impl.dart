@@ -14,9 +14,15 @@ class ThemeModeRepositoryImpl implements ThemeModeRepository {
   Future<Either<Failure, ThemeModeEntity>> changeThemeMode({required ThemeModeParams params}) async {
     try {
       final ThemeModeModel themeMode = await dataSources.changeThemeMode(themeMode: params.selectedThemeMode);
+
       return Right<Failure, ThemeModeEntity>(themeMode.toEntity());
     } on Exception {
       return const Left<Failure, ThemeModeEntity>(SettingsFailure());
     }
+  }
+
+  @override
+  ThemeModeEntity getSavedThemeMode() {
+    return dataSources.getSavedThemeMode().toEntity();
   }
 }

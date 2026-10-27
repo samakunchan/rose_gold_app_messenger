@@ -14,9 +14,15 @@ class LanguagesRepositoryImpl implements LanguagesRepository {
   Future<Either<Failure, LanguageEntity>> changeLanguages({required LanguageParams params}) async {
     try {
       final LanguageModel language = await dataSources.changeLanguage(languageCode: params.languageCode);
+
       return Right<Failure, LanguageEntity>(language.toEntity());
     } on Exception {
       return const Left<Failure, LanguageEntity>(SettingsFailure());
     }
+  }
+
+  @override
+  LanguageEntity getSavedLanguage() {
+    return dataSources.getSavedLanguage().toEntity();
   }
 }
