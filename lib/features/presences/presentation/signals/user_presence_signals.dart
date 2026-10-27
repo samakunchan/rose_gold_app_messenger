@@ -91,8 +91,15 @@ class UserPresenceSignals {
   /// A exécuter en premier. S'abonner au flux EN PREMIER pour ne rien rater.
   Future<void> _startListeningToUsers() async {
     await _presenceSubscription?.cancel(); // Évite les doublons d'abonnements
-    _presenceSubscription = getConnectedUsersUseCase().listen((List<UserPresenceEntity> users) {
-      onlineUsers.value = users.map(UserPresenceViewModel.new).toList();
-    });
+    _presenceSubscription = getConnectedUsersUseCase().listen(
+      (List<UserPresenceEntity> users) {
+        onlineUsers.value = users.map(UserPresenceViewModel.new).toList();
+      },
+      onError: (Object error) {
+        if (kDebugMode) {
+          print('UserPresenceSignals listen users error: $error');
+        }
+      },
+    );
   }
 }

@@ -155,8 +155,15 @@ class RoomInvitationsSignals {
 
   Future<void> receiveInvitation({required String invitedUserId}) async {
     await _invitationsSubscription?.cancel();
-    _invitationsSubscription = receiveInvitationUseCase().listen((List<RoomInvitationEntity> invitationEntity) {
-      invitations.value = invitationEntity.map(RoomInvitationViewModel.new).toList();
-    });
+    _invitationsSubscription = receiveInvitationUseCase().listen(
+      (List<RoomInvitationEntity> invitationEntity) {
+        invitations.value = invitationEntity.map(RoomInvitationViewModel.new).toList();
+      },
+      onError: (Object error) {
+        if (kDebugMode) {
+          print('RoomInvitationsSignals receiveInvitation error: $error');
+        }
+      },
+    );
   }
 }
