@@ -4,6 +4,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:rose_gold_app_messenger/features/chat/presentation/di/chat_d_i.dart';
+import 'package:rose_gold_app_messenger/features/core/database/app_database.dart';
 import 'package:rose_gold_app_messenger/features/feedback/di/feedback_d_i.dart';
 import 'package:rose_gold_app_messenger/features/moderation/presentation/di/moderation_d_i.dart';
 import 'package:rose_gold_app_messenger/features/presences/presentation/di/presences_d_i.dart';
@@ -40,6 +42,7 @@ Future<void> initDI() async {
     ..registerSingleton<FlutterSecureStorage>(
       Platform.isMacOS ? const FlutterSecureStorage(mOptions: MacOsOptions(usesDataProtectionKeychain: false)) : const FlutterSecureStorage(),
     )
+    ..registerSingleton<AppDatabase>(AppDatabase())
   //
   ;
   initFeedbackDI();
@@ -50,4 +53,5 @@ Future<void> initDI() async {
   initSupabaseRoomInvitationsDI();
   initModerationDI();
   initSettingsDI();
+  initChatDI();
 }

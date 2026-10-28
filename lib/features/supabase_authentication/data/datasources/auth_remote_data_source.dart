@@ -115,7 +115,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       try {
         final AuthResponse response = await client.auth.refreshSession();
         session = response.session;
-      } catch (_) {
+      } on Exception catch (_) {
         await client.auth.signOut();
         return null;
       }

@@ -89,6 +89,18 @@ as String?,
 
 /// Adds pattern-matching-related methods to [BlockedUserModel].
 extension BlockedUserModelPatterns on BlockedUserModel {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
 @optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _BlockedUserModel value)?  $default,{required TResult orElse(),}){
 final _that = this;
 switch (_that) {
@@ -98,6 +110,18 @@ return $default(_that);case _:
 
 }
 }
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
 
 @optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _BlockedUserModel value)  $default,){
 final _that = this;
@@ -108,6 +132,17 @@ return $default(_that);case _:
 
 }
 }
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
 
 @optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _BlockedUserModel value)?  $default,){
 final _that = this;
@@ -118,6 +153,17 @@ return $default(_that);case _:
 
 }
 }
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
 
 @optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'blocker_id')  String blockerId, @JsonKey(name: 'blocked_id')  String blockedId, @JsonKey(name: 'created_at')  String createdAt,  String? username, @JsonKey(name: 'user_tag')  String? userTag, @JsonKey(name: 'avatar_url')  String? avatarUrl)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
@@ -127,6 +173,18 @@ return $default(_that.id,_that.blockerId,_that.blockedId,_that.createdAt,_that.u
 
 }
 }
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
 
 @optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'blocker_id')  String blockerId, @JsonKey(name: 'blocked_id')  String blockedId, @JsonKey(name: 'created_at')  String createdAt,  String? username, @JsonKey(name: 'user_tag')  String? userTag, @JsonKey(name: 'avatar_url')  String? avatarUrl)  $default,) {final _that = this;
 switch (_that) {
@@ -136,6 +194,17 @@ return $default(_that.id,_that.blockerId,_that.blockedId,_that.createdAt,_that.u
 
 }
 }
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
 
 @optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'blocker_id')  String blockerId, @JsonKey(name: 'blocked_id')  String blockedId, @JsonKey(name: 'created_at')  String createdAt,  String? username, @JsonKey(name: 'user_tag')  String? userTag, @JsonKey(name: 'avatar_url')  String? avatarUrl)?  $default,) {final _that = this;
 switch (_that) {
@@ -208,7 +277,6 @@ $Res call({
 /// @nodoc
 class __$BlockedUserModelCopyWithImpl<$Res>
     implements _$BlockedUserModelCopyWith<$Res> {
-  __$UserMetadataModelCopyWithImpl_unused() {}
   __$BlockedUserModelCopyWithImpl(this._self, this._then);
 
   final _BlockedUserModel _self;

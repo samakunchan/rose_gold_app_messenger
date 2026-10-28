@@ -84,3 +84,13 @@ class RoomsInvitationFailure extends Failure {
 class SettingsFailure extends Failure {
   const new({super.message = ErrorMessage.defaultSettingFailureMessage});
 }
+
+/// Value: "Un problème est survenue lors de l‘envoi ou la réception du message."
+class ChatFailure extends Failure {
+  const new({super.message = ErrorMessage.chatFailureMessage});
+}
+
+/// Value: "Un problème est survenue lors du chiffrement ou déchiffrement."
+class CryptoFailure extends Failure {
+  const new({super.message = ErrorMessage.cryptoFailureMessage});
+}
