@@ -96,12 +96,7 @@ class ChatRemoteDataSourceImpl extends ChatRemoteDataSource {
   @override
   Future<Map<String, dynamic>?> getRoomKeyForUser({required String roomId, required String userId}) async {
     try {
-      final PostgrestMap? data = await client
-          .from('room_keys')
-          .select()
-          .eq('room_id', roomId)
-          .eq('user_id', userId)
-          .maybeSingle();
+      final PostgrestMap? data = await client.from('room_keys').select().eq('room_id', roomId).eq('user_id', userId).maybeSingle();
       return data;
     } on Exception catch (e) {
       if (kDebugMode) {
@@ -126,10 +121,7 @@ class ChatRemoteDataSourceImpl extends ChatRemoteDataSource {
   @override
   Future<Map<String, String>> getRoomMembersPublicKeys({required String roomId}) async {
     try {
-      final List<Map<String, dynamic>> members = await client
-          .from('room_members')
-          .select('user_id')
-          .eq('room_id', roomId);
+      final List<Map<String, dynamic>> members = await client.from('room_members').select('user_id').eq('room_id', roomId);
       final List<String> userIds = members.map((Map<String, dynamic> m) => m['user_id'] as String).toList();
       if (userIds.isEmpty) return <String, String>{};
 
@@ -139,8 +131,7 @@ class ChatRemoteDataSourceImpl extends ChatRemoteDataSource {
           .inFilter('user_id', userIds);
 
       return <String, String>{
-        for (final Map<String, dynamic> row in keysData)
-          row['user_id'] as String: row['public_key'] as String,
+        for (final Map<String, dynamic> row in keysData) row['user_id'] as String: row['public_key'] as String,
       };
     } on Exception catch (e) {
       if (kDebugMode) {
@@ -153,10 +144,7 @@ class ChatRemoteDataSourceImpl extends ChatRemoteDataSource {
   @override
   Future<List<String>> getExistingRoomKeyUserIds({required String roomId}) async {
     try {
-      final List<Map<String, dynamic>> data = await client
-          .from('room_keys')
-          .select('user_id')
-          .eq('room_id', roomId);
+      final List<Map<String, dynamic>> data = await client.from('room_keys').select('user_id').eq('room_id', roomId);
       return data.map((Map<String, dynamic> row) => row['user_id'] as String).toList();
     } on Exception catch (_) {
       return <String>[];
@@ -207,7 +195,9 @@ class ChatRemoteDataSourceImpl extends ChatRemoteDataSource {
     final String ext = fileExtension.replaceAll('.', '');
     final String path = '$currentUserId/${timestamp}_$randomSuffix.$ext.enc';
 
-    await client.storage.from('chat-attachments-encrypted').uploadBinary(
+    await client.storage
+        .from('chat-attachments-encrypted')
+        .uploadBinary(
           path,
           encryptedBytes,
           fileOptions: const FileOptions(

@@ -23,14 +23,14 @@ class SendEncryptedMessageParams extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[
-        roomId,
-        plainText,
-        peerPublicKeyBase64,
-        mediaUrl,
-        mediaBytes,
-        mediaFileName,
-        mediaMimeType,
-      ];
+    roomId,
+    plainText,
+    peerPublicKeyBase64,
+    mediaUrl,
+    mediaBytes,
+    mediaFileName,
+    mediaMimeType,
+  ];
 }
 
 class GetChatMessagesStreamParams extends Equatable {

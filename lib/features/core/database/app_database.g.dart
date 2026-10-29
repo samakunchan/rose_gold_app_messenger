@@ -3,8 +3,7 @@
 part of 'app_database.dart';
 
 // ignore_for_file: type=lint
-class $LocalMessagesTable extends LocalMessages
-    with TableInfo<$LocalMessagesTable, LocalMessage> {
+class $LocalMessagesTable extends LocalMessages with TableInfo<$LocalMessagesTable, LocalMessage> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -276,12 +275,8 @@ class LocalMessage extends DataClass implements Insertable<LocalMessage> {
       senderId: Value(senderId),
       decryptedContent: Value(decryptedContent),
       keyFingerprint: Value(keyFingerprint),
-      mediaUrl: mediaUrl == null && nullToAbsent
-          ? const Value.absent()
-          : Value(mediaUrl),
-      attachmentJson: attachmentJson == null && nullToAbsent
-          ? const Value.absent()
-          : Value(attachmentJson),
+      mediaUrl: mediaUrl == null && nullToAbsent ? const Value.absent() : Value(mediaUrl),
+      attachmentJson: attachmentJson == null && nullToAbsent ? const Value.absent() : Value(attachmentJson),
       createdAt: Value(createdAt),
     );
   }
@@ -333,9 +328,7 @@ class LocalMessage extends DataClass implements Insertable<LocalMessage> {
     decryptedContent: decryptedContent ?? this.decryptedContent,
     keyFingerprint: keyFingerprint ?? this.keyFingerprint,
     mediaUrl: mediaUrl.present ? mediaUrl.value : this.mediaUrl,
-    attachmentJson: attachmentJson.present
-        ? attachmentJson.value
-        : this.attachmentJson,
+    attachmentJson: attachmentJson.present ? attachmentJson.value : this.attachmentJson,
     createdAt: createdAt ?? this.createdAt,
   );
   LocalMessage copyWithCompanion(LocalMessagesCompanion data) {
@@ -343,16 +336,10 @@ class LocalMessage extends DataClass implements Insertable<LocalMessage> {
       id: data.id.present ? data.id.value : this.id,
       roomId: data.roomId.present ? data.roomId.value : this.roomId,
       senderId: data.senderId.present ? data.senderId.value : this.senderId,
-      decryptedContent: data.decryptedContent.present
-          ? data.decryptedContent.value
-          : this.decryptedContent,
-      keyFingerprint: data.keyFingerprint.present
-          ? data.keyFingerprint.value
-          : this.keyFingerprint,
+      decryptedContent: data.decryptedContent.present ? data.decryptedContent.value : this.decryptedContent,
+      keyFingerprint: data.keyFingerprint.present ? data.keyFingerprint.value : this.keyFingerprint,
       mediaUrl: data.mediaUrl.present ? data.mediaUrl.value : this.mediaUrl,
-      attachmentJson: data.attachmentJson.present
-          ? data.attachmentJson.value
-          : this.attachmentJson,
+      attachmentJson: data.attachmentJson.present ? data.attachmentJson.value : this.attachmentJson,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -537,39 +524,35 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $LocalMessagesTable localMessages = $LocalMessagesTable(this);
   @override
-  Iterable<TableInfo<Table, Object?>> get allTables =>
-      allSchemaEntities.whereType<TableInfo<Table, Object?>>();
+  Iterable<TableInfo<Table, Object?>> get allTables => allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [localMessages];
 }
 
-typedef $$LocalMessagesTableCreateCompanionBuilder =
-    LocalMessagesCompanion Function({
-      required String id,
-      required String roomId,
-      required String senderId,
-      required String decryptedContent,
-      required String keyFingerprint,
-      Value<String?> mediaUrl,
-      Value<String?> attachmentJson,
-      required String createdAt,
-      Value<int> rowid,
-    });
-typedef $$LocalMessagesTableUpdateCompanionBuilder =
-    LocalMessagesCompanion Function({
-      Value<String> id,
-      Value<String> roomId,
-      Value<String> senderId,
-      Value<String> decryptedContent,
-      Value<String> keyFingerprint,
-      Value<String?> mediaUrl,
-      Value<String?> attachmentJson,
-      Value<String> createdAt,
-      Value<int> rowid,
-    });
+typedef $$LocalMessagesTableCreateCompanionBuilder = LocalMessagesCompanion Function({
+  required String id,
+  required String roomId,
+  required String senderId,
+  required String decryptedContent,
+  required String keyFingerprint,
+  Value<String?> mediaUrl,
+  Value<String?> attachmentJson,
+  required String createdAt,
+  Value<int> rowid,
+});
+typedef $$LocalMessagesTableUpdateCompanionBuilder = LocalMessagesCompanion Function({
+  Value<String> id,
+  Value<String> roomId,
+  Value<String> senderId,
+  Value<String> decryptedContent,
+  Value<String> keyFingerprint,
+  Value<String?> mediaUrl,
+  Value<String?> attachmentJson,
+  Value<String> createdAt,
+  Value<int> rowid,
+});
 
-class $$LocalMessagesTableFilterComposer
-    extends Composer<_$AppDatabase, $LocalMessagesTable> {
+class $$LocalMessagesTableFilterComposer extends Composer<_$AppDatabase, $LocalMessagesTable> {
   $$LocalMessagesTableFilterComposer({
     required super.$db,
     required super.$table,
@@ -618,8 +601,7 @@ class $$LocalMessagesTableFilterComposer
   );
 }
 
-class $$LocalMessagesTableOrderingComposer
-    extends Composer<_$AppDatabase, $LocalMessagesTable> {
+class $$LocalMessagesTableOrderingComposer extends Composer<_$AppDatabase, $LocalMessagesTable> {
   $$LocalMessagesTableOrderingComposer({
     required super.$db,
     required super.$table,
@@ -668,8 +650,7 @@ class $$LocalMessagesTableOrderingComposer
   );
 }
 
-class $$LocalMessagesTableAnnotationComposer
-    extends Composer<_$AppDatabase, $LocalMessagesTable> {
+class $$LocalMessagesTableAnnotationComposer extends Composer<_$AppDatabase, $LocalMessagesTable> {
   $$LocalMessagesTableAnnotationComposer({
     required super.$db,
     required super.$table,
@@ -677,14 +658,11 @@ class $$LocalMessagesTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  GeneratedColumn<String> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
+  GeneratedColumn<String> get id => $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get roomId =>
-      $composableBuilder(column: $table.roomId, builder: (column) => column);
+  GeneratedColumn<String> get roomId => $composableBuilder(column: $table.roomId, builder: (column) => column);
 
-  GeneratedColumn<String> get senderId =>
-      $composableBuilder(column: $table.senderId, builder: (column) => column);
+  GeneratedColumn<String> get senderId => $composableBuilder(column: $table.senderId, builder: (column) => column);
 
   GeneratedColumn<String> get decryptedContent => $composableBuilder(
     column: $table.decryptedContent,
@@ -696,16 +674,14 @@ class $$LocalMessagesTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<String> get mediaUrl =>
-      $composableBuilder(column: $table.mediaUrl, builder: (column) => column);
+  GeneratedColumn<String> get mediaUrl => $composableBuilder(column: $table.mediaUrl, builder: (column) => column);
 
   GeneratedColumn<String> get attachmentJson => $composableBuilder(
     column: $table.attachmentJson,
     builder: (column) => column,
   );
 
-  GeneratedColumn<String> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+  GeneratedColumn<String> get createdAt => $composableBuilder(column: $table.createdAt, builder: (column) => column);
 }
 
 class $$LocalMessagesTableTableManager
@@ -731,12 +707,9 @@ class $$LocalMessagesTableTableManager
         TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer: () =>
-              $$LocalMessagesTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$LocalMessagesTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$LocalMessagesTableAnnotationComposer($db: db, $table: table),
+          createFilteringComposer: () => $$LocalMessagesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () => $$LocalMessagesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () => $$LocalMessagesTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
                 Value<String> id = const Value.absent(),
@@ -785,11 +758,7 @@ class $$LocalMessagesTableTableManager
               .map(
                 (e) => (
                   e.readTable<$LocalMessagesTable, LocalMessage>(table),
-                  BaseReferences<
-                    _$AppDatabase,
-                    $LocalMessagesTable,
-                    LocalMessage
-                  >(db, table, e),
+                  BaseReferences<_$AppDatabase, $LocalMessagesTable, LocalMessage>(db, table, e),
                 ),
               )
               .toList(),
@@ -819,6 +788,5 @@ typedef $$LocalMessagesTableProcessedTableManager =
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
-  $$LocalMessagesTableTableManager get localMessages =>
-      $$LocalMessagesTableTableManager(_db, _db.localMessages);
+  $$LocalMessagesTableTableManager get localMessages => $$LocalMessagesTableTableManager(_db, _db.localMessages);
 }

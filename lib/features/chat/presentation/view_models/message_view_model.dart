@@ -5,8 +5,7 @@ import 'package:rose_gold_app_messenger/features/chat/domain/entities/message_en
 import 'package:timeago/timeago.dart' as timeago;
 
 class MessageViewModel {
-  new(this.entity, {required this.currentUserId})
-      : _locale = PlatformDispatcher.instance.locale.languageCode;
+  new(this.entity, {required this.currentUserId}) : _locale = PlatformDispatcher.instance.locale.languageCode;
 
   final MessageEntity entity;
   final String currentUserId;

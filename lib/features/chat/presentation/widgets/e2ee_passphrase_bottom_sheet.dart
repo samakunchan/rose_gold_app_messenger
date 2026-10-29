@@ -242,9 +242,7 @@ class _E2eePassphraseBottomSheetState extends State<E2eePassphraseBottomSheet> {
                           ],
                         ),
                         Text(
-                          _isObscured
-                              ? '•••• •••• •••• •••• •••• •••• •••• •••• •••• •••• •••• ••••'
-                              : currentPhrase,
+                          _isObscured ? '•••• •••• •••• •••• •••• •••• •••• •••• •••• •••• •••• ••••' : currentPhrase,
                           style: theme.textTheme.bodyLarge?.copyWith(
                             fontFamily: 'monospace',
                             fontWeight: .bold,

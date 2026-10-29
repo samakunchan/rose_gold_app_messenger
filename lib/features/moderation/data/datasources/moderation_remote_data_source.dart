@@ -86,11 +86,7 @@ class ModerationRemoteDataSourceImpl implements ModerationRemoteDataSource {
       return false;
     }
 
-    await client
-        .from('blocked_users')
-        .delete()
-        .eq('blocker_id', currentUserId)
-        .eq('blocked_id', blockedUserId);
+    await client.from('blocked_users').delete().eq('blocker_id', currentUserId).eq('blocked_id', blockedUserId);
 
     return true;
   }
@@ -118,10 +114,7 @@ class ModerationRemoteDataSourceImpl implements ModerationRemoteDataSource {
       if (details != null && details.trim().isNotEmpty) 'details': details.trim(),
     });
 
-    await client
-        .from('room_invitations')
-        .update(<String, dynamic>{'status': 'reported'})
-        .eq('id', invitationId);
+    await client.from('room_invitations').update(<String, dynamic>{'status': 'reported'}).eq('id', invitationId);
 
     if (blockUser) {
       await this.blockUser(blockedUserId: reportedUserId);
