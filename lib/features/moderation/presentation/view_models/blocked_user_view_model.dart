@@ -4,9 +4,7 @@ import 'package:rose_gold_app_messenger/features/moderation/domain/entities/bloc
 import 'package:timeago/timeago.dart' as timeago;
 
 class BlockedUserViewModel {
-  new(BlockedUserEntity entity)
-    : _entity = entity,
-      _locale = PlatformDispatcher.instance.locale.languageCode;
+  new(BlockedUserEntity entity) : _entity = entity, _locale = PlatformDispatcher.instance.locale.languageCode;
 
   final BlockedUserEntity _entity;
   final String _locale;
