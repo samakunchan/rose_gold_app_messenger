@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
+import 'package:rose_gold_app_messenger/features/chat/presentation/screens/chat_screen.dart';
 import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
 import 'package:rose_gold_app_messenger/features/presences/presentation/signals/user_presence_signals.dart';
 import 'package:rose_gold_app_messenger/features/presences/presentation/view_models/user_presence_view_model.dart';
@@ -83,8 +84,13 @@ class _RoomScreenState extends State<RoomScreen> {
                     child: ElevatedButton.icon(
                       style: roomsTheme.primaryDecorationButton,
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('La conversation sera bientôt disponible !'), behavior: .floating),
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => ChatScreen(
+                              roomId: widget.roomId,
+                              roomName: roomName,
+                            ),
+                          ),
                         );
                       },
                       icon: const Icon(Icons.forum_outlined),

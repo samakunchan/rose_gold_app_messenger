@@ -106,9 +106,16 @@ class RoomsSignals {
 
   Future<void> getRooms() async {
     await _roomsSubscription?.cancel();
-    _roomsSubscription = getRoomsUseCase().listen((List<RoomEntity> roomsEntity) {
-      rooms.value = roomsEntity.map(RoomViewModel.new).toList();
-      unawaited(kGetIt<RoomMembersSignals>().fetchCoMembers());
-    });
+    _roomsSubscription = getRoomsUseCase().listen(
+      (List<RoomEntity> roomsEntity) {
+        rooms.value = roomsEntity.map(RoomViewModel.new).toList();
+        unawaited(kGetIt<RoomMembersSignals>().fetchCoMembers());
+      },
+      onError: (Object error) {
+        if (kDebugMode) {
+          print('RoomsSignals getRooms error: $error');
+        }
+      },
+    );
   }
 }

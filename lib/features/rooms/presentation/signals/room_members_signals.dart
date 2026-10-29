@@ -35,11 +35,18 @@ class RoomMembersSignals {
   /// Voir les membres d'un salon.
   Future<void> getMembers({required String roomId}) async {
     await _membersSubscription?.cancel();
-    _membersSubscription = getRoomsMembersUseCase(GetRoomMembersParams(roomId: roomId)).listen((List<RoomMemberEntity> roomsEntity) {
-      members.value = roomsEntity
-          .map((RoomMemberEntity entity) => RoomMemberViewModel(entity, onlineUsers: kGetIt<UserPresenceSignals>().onlineUsers.value))
-          .toList();
-    });
+    _membersSubscription = getRoomsMembersUseCase(GetRoomMembersParams(roomId: roomId)).listen(
+      (List<RoomMemberEntity> roomsEntity) {
+        members.value = roomsEntity
+            .map((RoomMemberEntity entity) => RoomMemberViewModel(entity, onlineUsers: kGetIt<UserPresenceSignals>().onlineUsers.value))
+            .toList();
+      },
+      onError: (Object error) {
+        if (kDebugMode) {
+          print('RoomMembersSignals getMembers error: $error');
+        }
+      },
+    );
   }
 
   /// Récupérer les co-membres partageant au moins un salon
