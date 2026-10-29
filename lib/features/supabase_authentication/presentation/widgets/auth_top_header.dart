@@ -28,11 +28,7 @@ class AuthTopHeader extends StatelessWidget {
           ),
           child: Text(
             'ROSEGOLD MESSENGER',
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.primary,
-              letterSpacing: 5,
-              fontWeight: .w600,
-            ),
+            style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.primary, letterSpacing: 5, fontWeight: .w600),
           ),
         ),
         const SizedBox(width: 40, height: 40),

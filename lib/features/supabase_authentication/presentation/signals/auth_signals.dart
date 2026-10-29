@@ -2,8 +2,10 @@ import 'dart:io';
 
 import 'package:dart_either/dart_either.dart';
 import 'package:flutter/foundation.dart';
+import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
 import 'package:rose_gold_app_messenger/features/core/errors/failures.dart';
 import 'package:rose_gold_app_messenger/features/presences/presentation/signals/user_presence_signals.dart';
+import 'package:rose_gold_app_messenger/features/profile/presentation/signals/profile_signals.dart';
 import 'package:rose_gold_app_messenger/features/supabase_authentication/domain/entities/auth_session_entity.dart';
 import 'package:rose_gold_app_messenger/features/supabase_authentication/domain/entities/credential_remembered_entity.dart';
 import 'package:rose_gold_app_messenger/features/supabase_authentication/domain/usecases/get_remembered_credentials.dart';
@@ -148,6 +150,7 @@ class AuthSignals {
         userConnectedTag.value = null;
         await checkSavedCredentials();
         await userPresenceSignals.leaveGlobalChannel();
+        kGetIt<ProfileSignals>().stopListeningRealtime();
       },
     );
     isLoading.value = false;
