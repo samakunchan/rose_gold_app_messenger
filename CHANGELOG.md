@@ -1,5 +1,38 @@
 # CHANGELOG rose_gold_app_messenger
 
+## 🚀 0.8.0 - 29/10/2026
+
+### Added
+
+- Added End-to-End Encryption (E2EE) messaging architecture using Curve25519 (X25519) key exchange, ChaCha20-Poly1305 AEAD, and HKDF-SHA256 session key derivation.
+- Added 12-word secret recovery passphrase system with PBKDF2-HMAC-SHA256 deterministic key derivation and user salt.
+- Added user public key management (`public.user_public_keys`) with Supabase RLS and Realtime CDC synchronization.
+- Added candidate keys multi-derivation mechanism supporting forward and backward secrecy for room members joining or leaving.
+- Added Drift (SQLite) local storage for encrypted messaging cache with full-text search and offline capability (`AppDatabase`, `LocalMessagesTable`).
+- Added hybrid media encryption for photos and videos: local symmetric encryption with ephemeral 256-bit key and upload to private bucket `chat-attachments-encrypted`.
+- Added Zero-Knowledge attachment transmission: decryption key and nonce packaged inside the E2EE envelope.
+- Added standalone `media` feature module (`lib/features/media/`) with `PickedMedia` entity, `MediaPickerDataSource`, and `MediaStorageDataSource`.
+- Added public `avatars` Supabase Storage bucket with RLS policies for user profile and room avatars.
+- Added use cases: `PickImageUseCase`, `PickVideoUseCase`, `UploadPublicAvatarUseCase`, and `DownloadAndDecryptMediaUseCase`.
+- Added generic `AppMediaPickerBottomSheet` supporting avatar photo selection and chat photo/video attachments.
+- Added UI chat components: `ChatScreen`, `ChatAppBar`, `ChatMessageBubble`, `ChatInputField`, `ChatMessagesList`, `ChatEmptyView`, `E2eeSecurityBanner`, `ChatSearchDelegate`, and `E2eePassphraseBottomSheet`.
+- Added media display widgets: `ChatMediaAttachmentBubble` and `ChatFullScreenImageViewer` with interactive pinch-to-zoom.
+- Added comprehensive unit test suites for local database caching, media crypto, and media picker.
+
+### Changed
+
+- Updated `ChatInputField` to use the shared `AppMediaPickerBottomSheet` from the new `media` feature.
+- Upgraded Drift database schema to version 2 with migration for `attachmentJson` column.
+- Scoped all sensitive keys in `FlutterSecureStorage` by user ID.
+
+### Fixed
+
+- Fixed `RealtimeSubscribeException` on Supabase Realtime client by registering `messages` in publication `supabase_realtime`.
+- Fixed candidate decryption keys to allow senders to always read their pre-join and post-leave history without key loss.
+- Fixed ListTile ink splash and background warning by replacing outer Container with a Material wrapper in the media picker bottom sheet.
+
+---
+
 ## 🚀 0.7.0 - 27/10/2026
 
 ### Added
