@@ -58,12 +58,14 @@ class MediaRepositoryImpl extends MediaRepository {
   Future<Either<Failure, String>> uploadPublicAvatar({
     required Uint8List bytes,
     required String fileExtension,
+    String? mimeType,
     String? customPrefix,
   }) async {
     try {
       final String publicUrl = await storageDataSource.uploadPublicAvatar(
         bytes: bytes,
         fileExtension: fileExtension,
+        mimeType: mimeType,
         customPrefix: customPrefix,
       );
       return Right<Failure, String>(publicUrl);

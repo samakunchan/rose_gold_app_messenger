@@ -30,8 +30,9 @@ void main() {
   test('Hybrid Media Encryption: encrypt and decrypt raw media bytes', () async {
     final Uint8List originalBytes = Uint8List.fromList(utf8.encode('Fake photo JPEG binary bytes'));
 
-    final ({Uint8List encryptedBytes, String fileKeyBase64, String nonceBase64}) encrypted =
-        await cryptoDataSource.encryptMediaFile(originalBytes);
+    final ({Uint8List encryptedBytes, String fileKeyBase64, String nonceBase64}) encrypted = await cryptoDataSource.encryptMediaFile(
+      originalBytes,
+    );
 
     expect(encrypted.encryptedBytes, isNot(equals(originalBytes)));
     expect(encrypted.fileKeyBase64.isNotEmpty, isTrue);

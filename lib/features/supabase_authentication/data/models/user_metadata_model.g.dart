@@ -6,28 +6,26 @@ part of 'user_metadata_model.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_UserMetadataModel _$UserMetadataModelFromJson(Map<String, dynamic> json) =>
-    _UserMetadataModel(
-      email: json['email'] as String,
-      sub: json['sub'] as String,
-      targetApp: json['target_app'] as String,
-      emailVerified: json['email_verified'] as bool,
-      phoneVerified: json['phone_verified'] as bool,
-      username: json['username'] as String?,
-      userTag: json['user_tag'] as String?,
-      avatarUrl: json['avatar_url'] as String?,
-      phoneNumber: json['phone_number'] as String?,
-    );
+_UserMetadataModel _$UserMetadataModelFromJson(Map<String, dynamic> json) => _UserMetadataModel(
+  email: json['email'] as String,
+  sub: json['sub'] as String,
+  targetApp: json['target_app'] as String,
+  emailVerified: json['email_verified'] as bool,
+  phoneVerified: json['phone_verified'] as bool,
+  username: json['username'] as String?,
+  userTag: json['user_tag'] as String?,
+  avatarUrl: json['avatar_url'] as String?,
+  phoneNumber: json['phone_number'] as String?,
+);
 
-Map<String, dynamic> _$UserMetadataModelToJson(_UserMetadataModel instance) =>
-    <String, dynamic>{
-      'email': instance.email,
-      'sub': instance.sub,
-      'target_app': instance.targetApp,
-      'email_verified': instance.emailVerified,
-      'phone_verified': instance.phoneVerified,
-      'username': instance.username,
-      'user_tag': instance.userTag,
-      'avatar_url': instance.avatarUrl,
-      'phone_number': instance.phoneNumber,
-    };
+Map<String, dynamic> _$UserMetadataModelToJson(_UserMetadataModel instance) => <String, dynamic>{
+  'email': instance.email,
+  'sub': instance.sub,
+  'target_app': instance.targetApp,
+  'email_verified': instance.emailVerified,
+  'phone_verified': instance.phoneVerified,
+  'username': instance.username,
+  'user_tag': instance.userTag,
+  'avatar_url': instance.avatarUrl,
+  'phone_number': instance.phoneNumber,
+};

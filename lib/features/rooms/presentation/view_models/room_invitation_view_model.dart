@@ -6,9 +6,7 @@ import 'package:rose_gold_app_messenger/features/rooms/domain/entities/room_invi
 import 'package:timeago/timeago.dart' as timeago;
 
 class RoomInvitationViewModel {
-  new(RoomInvitationEntity entity)
-    : _entity = entity,
-      _locale = PlatformDispatcher.instance.locale.languageCode;
+  new(RoomInvitationEntity entity) : _entity = entity, _locale = PlatformDispatcher.instance.locale.languageCode;
 
   final RoomInvitationEntity _entity;
   final String _locale;

@@ -24,13 +24,13 @@ class MessageEntity extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[
-        id,
-        roomId,
-        senderId,
-        decryptedContent,
-        keyFingerprint,
-        createdAt,
-        mediaUrl,
-        attachment,
-      ];
+    id,
+    roomId,
+    senderId,
+    decryptedContent,
+    keyFingerprint,
+    createdAt,
+    mediaUrl,
+    attachment,
+  ];
 }

@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/view_models/user_profile_view_model.dart';
+import 'package:rose_gold_app_messenger/features/rooms/presentation/widgets/monogram_user.dart';
 import 'package:rose_gold_app_messenger/themes/static_spacing.dart';
 
 class FoundUsersResults extends StatelessWidget {
@@ -34,9 +35,7 @@ class FoundUsersResults extends StatelessWidget {
           Row(
             spacing: AppSpacing.spaceMd.value,
             children: <Widget>[
-              CircleAvatar(
-                child: Text(foundUser.username.isNotEmpty ? foundUser.username[0].toUpperCase() : '?'),
-              ),
+              MonogramUser(username: foundUser.username, avatarUrl: foundUser.avatarUrl, size: 40),
               Column(
                 crossAxisAlignment: .start,
                 children: <Widget>[

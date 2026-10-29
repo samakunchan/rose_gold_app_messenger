@@ -243,8 +243,9 @@ class ChatRepositoryImpl extends ChatRepository {
       // 1. Chiffrement hybride du fichier média si présent
       if (params.mediaBytes != null && params.mediaBytes!.isNotEmpty) {
         final String fileExtension = params.mediaFileName?.split('.').last ?? 'bin';
-        final ({Uint8List encryptedBytes, String fileKeyBase64, String nonceBase64}) mediaEncrypted =
-            await cryptoDataSource.encryptMediaFile(params.mediaBytes!);
+        final ({Uint8List encryptedBytes, String fileKeyBase64, String nonceBase64}) mediaEncrypted = await cryptoDataSource.encryptMediaFile(
+          params.mediaBytes!,
+        );
 
         final String storagePath = await remoteDataSource.uploadEncryptedMedia(
           encryptedBytes: mediaEncrypted.encryptedBytes,

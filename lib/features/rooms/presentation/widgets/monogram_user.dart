@@ -1,12 +1,25 @@
+import 'dart:typed_data';
+
 import 'package:material_ui/material_ui.dart';
+import 'package:rose_gold_app_messenger/extensions/string_extension.dart';
 import 'package:rose_gold_app_messenger/themes/extensions/rooms_theme_extension.dart';
 import 'package:rose_gold_app_messenger/themes/themes_all_export.dart';
 
 class MonogramUser extends StatelessWidget {
-  const new({required this.username, this.isOnline = false, this.size = 44, this.badgeBorderColor, this.statusColor, this.avatarUrl, super.key});
+  const new({
+    required this.username,
+    this.isOnline = false,
+    this.size = 44,
+    this.badgeBorderColor,
+    this.statusColor,
+    this.avatarUrl,
+    this.imageBytes,
+    super.key,
+  });
 
   final String username;
   final String? avatarUrl;
+  final Uint8List? imageBytes;
   final bool isOnline;
   final double size;
   final Color? badgeBorderColor;
@@ -19,7 +32,7 @@ class MonogramUser extends StatelessWidget {
     final double fontSize = (size * 0.41).clamp(10, 24);
     final double indicatorSize = (size * 0.28).clamp(10, 16);
     final double indicatorBorderWidth = (size * 0.045).clamp(1.5, 2.5);
-    final String initial = username.isNotEmpty ? username[0].toUpperCase() : '#';
+    final String initial = username.isNotEmpty ? username.getInitialAvatar() : '#';
 
     return SizedBox(
       width: size,
@@ -33,7 +46,18 @@ class MonogramUser extends StatelessWidget {
             decoration: roomsTheme.avatarContainerDecoration,
             clipBehavior: .antiAlias,
             alignment: .center,
-            child: (avatarUrl != null && avatarUrl!.isNotEmpty)
+            child: imageBytes != null
+                ? Image.memory(
+                    imageBytes!,
+                    width: size,
+                    height: size,
+                    fit: .cover,
+                    errorBuilder: (_, _, _) => Text(
+                      initial,
+                      style: theme.textTheme.headlineMedium?.copyWith(color: roomsTheme.primaryTextColor, fontSize: fontSize),
+                    ),
+                  )
+                : (avatarUrl != null && avatarUrl!.isNotEmpty)
                 ? Image.network(
                     avatarUrl!,
                     width: size,

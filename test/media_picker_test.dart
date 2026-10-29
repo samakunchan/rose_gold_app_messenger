@@ -34,6 +34,7 @@ class FakeMediaRepository implements MediaRepository {
   Future<Either<Failure, String>> uploadPublicAvatar({
     required Uint8List bytes,
     required String fileExtension,
+    String? mimeType,
     String? customPrefix,
   }) async {
     if (stubUploadedUrl != null) {

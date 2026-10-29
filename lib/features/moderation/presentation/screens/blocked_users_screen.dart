@@ -76,7 +76,7 @@ class _BlockedUsersScreenState extends State<BlockedUsersScreen> {
                     child: Row(
                       spacing: AppSpacing.spaceMd.value,
                       children: <Widget>[
-                        MonogramUser(username: user.username),
+                        MonogramUser(username: user.username, avatarUrl: user.avatarUrl),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: .start,

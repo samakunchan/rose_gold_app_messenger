@@ -8,15 +8,7 @@ class UploadPublicAvatarUseCase {
 
   final MediaRepository repository;
 
-  Future<Either<Failure, String>> call({
-    required Uint8List bytes,
-    required String fileExtension,
-    String? customPrefix,
-  }) {
-    return repository.uploadPublicAvatar(
-      bytes: bytes,
-      fileExtension: fileExtension,
-      customPrefix: customPrefix,
-    );
+  Future<Either<Failure, String>> call({required Uint8List bytes, required String fileExtension, String? mimeType, String? customPrefix}) {
+    return repository.uploadPublicAvatar(bytes: bytes, fileExtension: fileExtension, mimeType: mimeType, customPrefix: customPrefix);
   }
 }

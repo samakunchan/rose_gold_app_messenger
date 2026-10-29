@@ -29,21 +29,21 @@ class EncryptedMediaAttachment extends Equatable {
   final String mimeType;
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'storage_path': storagePath,
-        'file_key': fileKeyBase64,
-        'nonce': nonceBase64,
-        'file_name': fileName,
-        'file_size': fileSize,
-        'mime_type': mimeType,
-      };
+    'storage_path': storagePath,
+    'file_key': fileKeyBase64,
+    'nonce': nonceBase64,
+    'file_name': fileName,
+    'file_size': fileSize,
+    'mime_type': mimeType,
+  };
 
   @override
   List<Object?> get props => <Object?>[
-        storagePath,
-        fileKeyBase64,
-        nonceBase64,
-        fileName,
-        fileSize,
-        mimeType,
-      ];
+    storagePath,
+    fileKeyBase64,
+    nonceBase64,
+    fileName,
+    fileSize,
+    mimeType,
+  ];
 }

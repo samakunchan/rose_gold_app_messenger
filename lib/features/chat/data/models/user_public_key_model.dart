@@ -19,10 +19,10 @@ abstract class UserPublicKeyModel with _$UserPublicKeyModel {
 
 extension UserPublicKeyModelX on UserPublicKeyModel {
   UserPublicKeyEntity toEntity() => UserPublicKeyEntity(
-        userId: userId,
-        publicKey: publicKey,
-        keyFingerprint: keyFingerprint,
-        createdAt: createdAt,
-        updatedAt: updatedAt,
-      );
+    userId: userId,
+    publicKey: publicKey,
+    keyFingerprint: keyFingerprint,
+    createdAt: createdAt,
+    updatedAt: updatedAt,
+  );
 }

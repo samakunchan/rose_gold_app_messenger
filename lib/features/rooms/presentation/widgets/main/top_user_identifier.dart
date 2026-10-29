@@ -1,6 +1,8 @@
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
+import 'package:rose_gold_app_messenger/features/profile/presentation/signals/profile_signals.dart';
+import 'package:rose_gold_app_messenger/features/profile/presentation/view_models/profile_view_model.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/widgets/monogram_user.dart';
 import 'package:rose_gold_app_messenger/features/supabase_authentication/presentation/signals/auth_signals.dart';
 import 'package:rose_gold_app_messenger/themes/extensions/rooms_theme_extension.dart';
@@ -9,26 +11,32 @@ import 'package:rose_gold_app_messenger/themes/static_spacing.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 class TopUserIdentifier extends SignalWidget {
-  const new({this.authSignals, super.key});
+  const new({this.profileSignals, this.authSignals, super.key});
+
+  final ProfileSignals? profileSignals;
   final AuthSignals? authSignals;
+
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final RoomsThemeExtension roomTheme = theme.extension<RoomsThemeExtension>() ?? .light;
-    final AuthSignals signals = authSignals ?? kGetIt<AuthSignals>();
+    final ProfileSignals pSignals = profileSignals ?? kGetIt<ProfileSignals>();
+    final AuthSignals aSignals = authSignals ?? kGetIt<AuthSignals>();
 
-    final String username = signals.userConnectedName.value ?? 'Utilisateur';
-    final String? userTag = signals.userConnectedTag.value;
+    final ProfileViewModel? profile = pSignals.currentProfile.value;
+    final String username = profile?.username ?? aSignals.userConnectedName.value ?? 'Utilisateur';
+    final String? userTag = profile?.userTag ?? aSignals.userConnectedTag.value;
+    final String? avatarUrl = profile?.avatarUrl ?? aSignals.userConnectedAvatarUrl.value;
 
     return Container(
       margin: .symmetric(horizontal: AppSpacing.spaceBase.value, vertical: AppSpacing.spaceSm.value),
       padding: .symmetric(horizontal: AppSpacing.spaceBase.value, vertical: AppSpacing.spaceMd.value),
       decoration: roomTheme.userInfoCardDecoration,
       child: Row(
+        spacing: AppSpacing.spaceMd.value,
         children: <Widget>[
-          /// Monogramme avec dégradé Rose Gold & bague dorée
-          MonogramUser(username: username),
-          const SizedBox(width: 14),
+          /// Monogramme avec avatar et dégradé Rose Gold
+          MonogramUser(username: username, avatarUrl: avatarUrl),
 
           /// Informations utilisateur
           Expanded(
@@ -36,10 +44,7 @@ class TopUserIdentifier extends SignalWidget {
               crossAxisAlignment: .start,
               mainAxisSize: .min,
               children: <Widget>[
-                Text(
-                  'Bienvenue,',
-                  style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 0.5),
-                ),
+                Text('Bienvenue,', style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 0.5)),
                 Text(
                   username,
                   style: theme.textTheme.titleMedium?.copyWith(fontWeight: .w700, color: theme.colorScheme.primary),
@@ -59,9 +64,8 @@ class TopUserIdentifier extends SignalWidget {
                 onTap: () async {
                   await Clipboard.setData(ClipboardData(text: userTag));
                   if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Identifiant copié !'), duration: Duration(seconds: 2), behavior: .floating),
-                    );
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(const SnackBar(content: Text('Identifiant copié !'), duration: Duration(seconds: 2), behavior: .floating));
                   }
                 },
                 child: Ink(

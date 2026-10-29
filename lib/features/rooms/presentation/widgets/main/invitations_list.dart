@@ -57,7 +57,7 @@ class InvitationsList extends SignalWidget {
                   Row(
                     spacing: AppSpacing.spaceMd.value,
                     children: <Widget>[
-                      MonogramUser(username: invitation.inviterDisplayName),
+                      MonogramUser(username: invitation.inviterDisplayName, avatarUrl: invitation.inviterAvatarUrl),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: .start,

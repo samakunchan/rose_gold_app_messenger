@@ -86,9 +86,7 @@ class ModerationSignals {
       },
       ifRight: (bool value) {
         success = value;
-        blockedUsers.value = blockedUsers.value
-            .where((BlockedUserViewModel u) => u.blockedUserId != blockedUserId)
-            .toList();
+        blockedUsers.value = blockedUsers.value.where((BlockedUserViewModel u) => u.blockedUserId != blockedUserId).toList();
       },
     );
 
