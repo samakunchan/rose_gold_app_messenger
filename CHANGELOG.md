@@ -1,5 +1,31 @@
 # CHANGELOG rose_gold_app_messenger
 
+## 🚀 0.9.0 - 29/10/2026
+
+### Added
+
+- Added dedicated Clean Architecture `profile` feature (data source, repository, use cases, view model, signals, DI).
+- Added `ProfileAvatarPicker` supporting image selection, deletion, and preview.
+- Added room avatar image picking and uploading in `RoomAvatarResult` and `EditRoomOwnerForm`.
+- Added real-time profile synchronization via Supabase `onPostgresChanges` on `public.profiles`.
+- Added `copyWith` methods to `UserProfileEntity`, `UserProfileViewModel`, `RoomMemberEntity`, and `RoomMemberViewModel`.
+- Added unit tests for profile feature, avatar picker, and top user identifier.
+
+### Changed
+
+- Replaced avatar URL input with `ProfileAvatarPicker` in `EditProfileSettingScreen`.
+- Unified avatar rendering across all screens using `MonogramUser` with `imageBytes` and `avatarUrl` support.
+- Updated `RoomCardTile` to display the room avatar using `MonogramUser`.
+- Updated `schema.sql` with idempotent `pg_publication_tables` checks for `supabase_realtime`.
+
+### Fixed
+
+- Fixed storage upload failure by mapping `image/jpg` MIME type to `image/jpeg`.
+- Fixed `user_tag` NOT NULL violation on profile update by using targeted `.update().eq()` instead of naive `.upsert()`.
+- Fixed non-instantaneous profile and avatar updates on other clients' screens via real-time change events.
+
+---
+
 ## 🚀 0.8.0 - 29/10/2026
 
 ### Added

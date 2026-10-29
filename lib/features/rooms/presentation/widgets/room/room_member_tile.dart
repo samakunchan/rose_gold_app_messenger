@@ -28,7 +28,7 @@ class RoomMemberTile extends StatelessWidget {
       child: Row(
         spacing: AppSpacing.spaceMd.value,
         children: <Widget>[
-          MonogramUser(username: username, isOnline: isOnline, size: 40),
+          MonogramUser(username: username, avatarUrl: member.avatarUrl, isOnline: isOnline, size: 40),
           Expanded(
             child: Column(
               crossAxisAlignment: .start,

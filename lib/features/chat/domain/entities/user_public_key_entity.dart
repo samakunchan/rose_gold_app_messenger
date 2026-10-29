@@ -17,10 +17,10 @@ class UserPublicKeyEntity extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[
-        userId,
-        publicKey,
-        keyFingerprint,
-        createdAt,
-        updatedAt,
-      ];
+    userId,
+    publicKey,
+    keyFingerprint,
+    createdAt,
+    updatedAt,
+  ];
 }

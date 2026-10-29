@@ -67,6 +67,33 @@ class RoomMembersSignals {
     );
   }
 
+  /// Met à jour de façon réactive un profil modifié dans coMembers et members
+  void updateMemberProfile({required String userId, required String username, String? avatarUrl}) {
+    final bool hasCoMemberChange = coMembers.value.any(
+      (UserProfileViewModel m) => m.id == userId && (m.username != username || m.avatarUrl != avatarUrl),
+    );
+    if (hasCoMemberChange) {
+      coMembers.value = coMembers.value.map((UserProfileViewModel m) {
+        if (m.id == userId) {
+          return m.copyWith(username: username, avatarUrl: avatarUrl);
+        }
+        return m;
+      }).toList();
+    }
+
+    final bool hasMemberChange = members.value.any(
+      (RoomMemberViewModel m) => m.userId == userId && (m.username != username || m.avatarUrl != avatarUrl),
+    );
+    if (hasMemberChange) {
+      members.value = members.value.map((RoomMemberViewModel m) {
+        if (m.userId == userId) {
+          return m.copyWith(username: username, avatarUrl: avatarUrl);
+        }
+        return m;
+      }).toList();
+    }
+  }
+
   Future<void> leaveRoom({required String roomId}) async {
     isLoadingCoMembers.value = true;
     final Either<Failure, bool> result = await leaveOneRoom(
