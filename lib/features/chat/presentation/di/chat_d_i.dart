@@ -4,6 +4,7 @@ import 'package:rose_gold_app_messenger/features/chat/data/datasources/chat_loca
 import 'package:rose_gold_app_messenger/features/chat/data/datasources/chat_remote_data_source.dart';
 import 'package:rose_gold_app_messenger/features/chat/data/repositories/chat_repository_impl.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/repositories/chat_repository.dart';
+import 'package:rose_gold_app_messenger/features/chat/domain/usecases/download_and_decrypt_media_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/get_chat_messages_stream_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/get_passphrase_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/initialize_e2ee_keys_use_case.dart';
@@ -59,6 +60,9 @@ void initChatDI() {
     ..registerLazySingleton<RegeneratePassphraseUseCase>(
       () => RegeneratePassphraseUseCase(kGetIt<ChatRepository>()),
     )
+    ..registerLazySingleton<DownloadAndDecryptMediaUseCase>(
+      () => DownloadAndDecryptMediaUseCase(repository: kGetIt<ChatRepository>()),
+    )
     /// Signals
     ..registerLazySingleton<ChatSignals>(
       () => ChatSignals(
@@ -69,6 +73,7 @@ void initChatDI() {
         getPassphraseUseCase: kGetIt<GetPassphraseUseCase>(),
         updatePassphraseUseCase: kGetIt<UpdatePassphraseUseCase>(),
         regeneratePassphraseUseCase: kGetIt<RegeneratePassphraseUseCase>(),
+        downloadAndDecryptMediaUseCase: kGetIt<DownloadAndDecryptMediaUseCase>(),
         supabaseClient: kGetIt<SupabaseClient>(),
       ),
     );

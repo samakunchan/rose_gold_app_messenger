@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:dart_either/dart_either.dart';
 import 'package:flutter/foundation.dart';
+import 'package:rose_gold_app_messenger/features/chat/domain/entities/encrypted_media_attachment.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/entities/message_entity.dart';
+import 'package:rose_gold_app_messenger/features/chat/domain/usecases/download_and_decrypt_media_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/get_chat_messages_stream_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/get_passphrase_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/initialize_e2ee_keys_use_case.dart';
@@ -25,6 +27,7 @@ class ChatSignals {
     required this.getPassphraseUseCase,
     required this.updatePassphraseUseCase,
     required this.regeneratePassphraseUseCase,
+    required this.downloadAndDecryptMediaUseCase,
     required this.supabaseClient,
   });
 
@@ -35,6 +38,7 @@ class ChatSignals {
   final GetPassphraseUseCase getPassphraseUseCase;
   final UpdatePassphraseUseCase updatePassphraseUseCase;
   final RegeneratePassphraseUseCase regeneratePassphraseUseCase;
+  final DownloadAndDecryptMediaUseCase downloadAndDecryptMediaUseCase;
   final SupabaseClient supabaseClient;
 
   final Signal<bool> isLoading = .new(false);
@@ -45,6 +49,8 @@ class ChatSignals {
   final Signal<String?> currentPassphrase = signal<String?>(null);
   final Signal<List<MessageViewModel>> messages = signal<List<MessageViewModel>>(<MessageViewModel>[]);
   final Signal<List<MessageViewModel>> searchResults = signal<List<MessageViewModel>>(<MessageViewModel>[]);
+
+  final Map<String, Uint8List> _decryptedMediaCache = <String, Uint8List>{};
 
   StreamSubscription<Either<Failure, List<MessageEntity>>>? _messagesSubscription;
 
@@ -121,51 +127,53 @@ class ChatSignals {
     return phrase;
   }
 
-  void subscribeToRoom({
-    required String roomId,
-    String? peerPublicKeyBase64,
-  }) {
+  void subscribeToRoom({required String roomId, String? peerPublicKeyBase64}) {
     unawaited(_messagesSubscription?.cancel());
     currentRoomId.value = roomId;
     isLoading.value = true;
 
     final String currentUserId = supabaseClient.auth.currentUser?.id ?? '';
 
-    _messagesSubscription = getMessagesStreamUseCase(
-      GetChatMessagesStreamParams(
-        roomId: roomId,
-        peerPublicKeyBase64: peerPublicKeyBase64,
-      ),
-    ).listen((Either<Failure, List<MessageEntity>> either) {
-      either.fold(
-        ifLeft: (Failure failure) {
-          isLoading.value = false;
-          if (kDebugMode) {
-            print('Erreur stream messages: ${failure.message}');
-          }
-        },
-        ifRight: (List<MessageEntity> entities) {
-          messages.value = entities
-              .map(
-                (MessageEntity e) => MessageViewModel(
-                  e,
-                  currentUserId: currentUserId,
-                ),
-              )
-              .toList();
-          isLoading.value = false;
-        },
-      );
-    });
+    _messagesSubscription =
+        getMessagesStreamUseCase(
+          GetChatMessagesStreamParams(
+            roomId: roomId,
+            peerPublicKeyBase64: peerPublicKeyBase64,
+          ),
+        ).listen((Either<Failure, List<MessageEntity>> either) {
+          either.fold(
+            ifLeft: (Failure failure) {
+              isLoading.value = false;
+              if (kDebugMode) {
+                print('Erreur stream messages: ${failure.message}');
+              }
+            },
+            ifRight: (List<MessageEntity> entities) {
+              messages.value = entities
+                  .map(
+                    (MessageEntity e) => MessageViewModel(
+                      e,
+                      currentUserId: currentUserId,
+                    ),
+                  )
+                  .toList();
+              isLoading.value = false;
+            },
+          );
+        });
   }
 
   Future<bool> sendMessage({
     required String roomId,
-    required String plainText,
+    String plainText = '',
     String? peerPublicKeyBase64,
     String? mediaUrl,
+    Uint8List? mediaBytes,
+    String? mediaFileName,
+    String? mediaMimeType,
   }) async {
-    if (plainText.trim().isEmpty && mediaUrl == null) {
+    final String trimmedText = plainText.trim();
+    if (trimmedText.isEmpty && mediaBytes == null && mediaUrl == null) {
       return false;
     }
 
@@ -173,9 +181,12 @@ class ChatSignals {
     final Either<Failure, MessageEntity> result = await sendMessageUseCase(
       SendEncryptedMessageParams(
         roomId: roomId,
-        plainText: plainText.trim(),
+        plainText: trimmedText,
         peerPublicKeyBase64: peerPublicKeyBase64,
         mediaUrl: mediaUrl,
+        mediaBytes: mediaBytes,
+        mediaFileName: mediaFileName,
+        mediaMimeType: mediaMimeType,
       ),
     );
 
@@ -195,10 +206,28 @@ class ChatSignals {
     return isSuccess;
   }
 
-  Future<void> search({
-    required String query,
-    String? roomId,
-  }) async {
+  Future<Uint8List?> getOrDownloadMedia(EncryptedMediaAttachment attachment) async {
+    if (_decryptedMediaCache.containsKey(attachment.storagePath)) {
+      return _decryptedMediaCache[attachment.storagePath];
+    }
+
+    final Either<Failure, Uint8List> result = await downloadAndDecryptMediaUseCase(attachment);
+    final Uint8List? decrypted = result.fold(
+      ifLeft: (Failure failure) {
+        if (kDebugMode) {
+          print('Erreur téléchargement/déchiffrement média: ${failure.message}');
+        }
+        return null;
+      },
+      ifRight: (Uint8List bytes) {
+        _decryptedMediaCache[attachment.storagePath] = bytes;
+        return bytes;
+      },
+    );
+    return decrypted;
+  }
+
+  Future<void> search({required String query, String? roomId}) async {
     final String trimmed = query.trim();
     if (trimmed.isEmpty) {
       searchResults.value = <MessageViewModel>[];
@@ -220,9 +249,7 @@ class ChatSignals {
       },
       ifRight: (List<MessageEntity> entities) {
         isSearching.value = false;
-        searchResults.value = entities
-            .map((MessageEntity e) => MessageViewModel(e, currentUserId: currentUserId))
-            .toList();
+        searchResults.value = entities.map((MessageEntity e) => MessageViewModel(e, currentUserId: currentUserId)).toList();
       },
     );
   }
@@ -237,6 +264,7 @@ class ChatSignals {
     _messagesSubscription = null;
     currentRoomId.value = null;
     messages.value = <MessageViewModel>[];
+    _decryptedMediaCache.clear();
     clearSearch();
   }
 }

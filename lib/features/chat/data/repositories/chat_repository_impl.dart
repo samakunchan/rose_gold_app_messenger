@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:cryptography/cryptography.dart';
 import 'package:dart_either/dart_either.dart';
@@ -8,6 +9,7 @@ import 'package:rose_gold_app_messenger/features/chat/data/datasources/chat_loca
 import 'package:rose_gold_app_messenger/features/chat/data/datasources/chat_remote_data_source.dart';
 import 'package:rose_gold_app_messenger/features/chat/data/models/message_model.dart';
 import 'package:rose_gold_app_messenger/features/chat/data/models/user_public_key_model.dart';
+import 'package:rose_gold_app_messenger/features/chat/domain/entities/encrypted_media_attachment.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/entities/message_entity.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/repositories/chat_repository.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/params.dart';
@@ -82,40 +84,192 @@ class ChatRepositoryImpl extends ChatRepository {
     }
   }
 
+  Future<SecretKey> _getOrEnsureRoomKey({
+    required String userId,
+    required String roomId,
+    String? peerPublicKeyBase64,
+  }) async {
+    // 1. Vérifier si la clé de salon est déjà en cache mémoire ou local
+    final SecretKey? localKey = await cryptoDataSource.getRoomKey(roomId: roomId);
+    if (localKey != null) {
+      unawaited(_syncMissingRoomKeys(userId: userId, roomId: roomId, roomKey: localKey));
+      return localKey;
+    }
+
+    // 2. Tenter de récupérer la clé chiffrée pour cet utilisateur depuis Supabase
+    final Map<String, dynamic>? keyRow = await remoteDataSource.getRoomKeyForUser(
+      roomId: roomId,
+      userId: userId,
+    );
+
+    if (keyRow != null) {
+      final String encryptedKey = keyRow['encrypted_key'] as String;
+      final String nonce = keyRow['nonce'] as String;
+      final String senderId = keyRow['sender_id'] as String;
+
+      final String senderPubKey = senderId == userId
+          ? await cryptoDataSource.getPublicKeyBase64(userId: userId)
+          : (await remoteDataSource.getPeerPublicKey(userId: senderId))?.publicKey ?? '';
+
+      if (senderPubKey.isNotEmpty) {
+        final SecretKey pairwiseKey = await cryptoDataSource.deriveSharedKey(
+          userId: userId,
+          peerPublicKeyBase64: senderPubKey,
+          roomId: roomId,
+        );
+
+        final SecretKey roomKey = await cryptoDataSource.decryptRoomKey(
+          encryptedKeyBase64: encryptedKey,
+          nonceBase64: nonce,
+          pairwiseKey: pairwiseKey,
+          roomId: roomId,
+        );
+
+        unawaited(_syncMissingRoomKeys(userId: userId, roomId: roomId, roomKey: roomKey));
+        return roomKey;
+      }
+    }
+
+    // 3. Aucune clé existante trouvée : générer une clé de salon et la distribuer à tous les membres
+    final SecretKey newRoomKey = await cryptoDataSource.generateAndStoreRoomKey(roomId: roomId);
+    await _distributeRoomKey(userId: userId, roomId: roomId, roomKey: newRoomKey);
+    return newRoomKey;
+  }
+
+  Future<void> _distributeRoomKey({
+    required String userId,
+    required String roomId,
+    required SecretKey roomKey,
+  }) async {
+    try {
+      final Map<String, String> membersPublicKeys = await remoteDataSource.getRoomMembersPublicKeys(roomId: roomId);
+      if (!membersPublicKeys.containsKey(userId)) {
+        final String myKey = await cryptoDataSource.getPublicKeyBase64(userId: userId);
+        membersPublicKeys[userId] = myKey;
+      }
+
+      final List<Map<String, dynamic>> rowsToUpsert = <Map<String, dynamic>>[];
+      for (final MapEntry<String, String> entry in membersPublicKeys.entries) {
+        final String memberId = entry.key;
+        final String memberPubKey = entry.value;
+
+        final SecretKey pairwiseKey = await cryptoDataSource.deriveSharedKey(
+          userId: userId,
+          peerPublicKeyBase64: memberPubKey,
+          roomId: roomId,
+        );
+
+        final ({String encryptedKey, String nonce}) encrypted = await cryptoDataSource.encryptRoomKey(
+          roomKey: roomKey,
+          pairwiseKey: pairwiseKey,
+        );
+
+        rowsToUpsert.add(<String, dynamic>{
+          'room_id': roomId,
+          'user_id': memberId,
+          'sender_id': userId,
+          'encrypted_key': encrypted.encryptedKey,
+          'nonce': encrypted.nonce,
+        });
+      }
+
+      if (rowsToUpsert.isNotEmpty) {
+        await remoteDataSource.saveRoomKeys(roomKeys: rowsToUpsert);
+      }
+    } on Exception catch (e) {
+      if (kDebugMode) {
+        print('Erreur _distributeRoomKey: $e');
+      }
+    }
+  }
+
+  Future<void> _syncMissingRoomKeys({
+    required String userId,
+    required String roomId,
+    required SecretKey roomKey,
+  }) async {
+    try {
+      final List<String> existingUserIds = await remoteDataSource.getExistingRoomKeyUserIds(roomId: roomId);
+      final Map<String, String> allMembers = await remoteDataSource.getRoomMembersPublicKeys(roomId: roomId);
+
+      final List<Map<String, dynamic>> missingRows = <Map<String, dynamic>>[];
+      for (final MapEntry<String, String> entry in allMembers.entries) {
+        if (!existingUserIds.contains(entry.key)) {
+          final SecretKey pairwiseKey = await cryptoDataSource.deriveSharedKey(
+            userId: userId,
+            peerPublicKeyBase64: entry.value,
+            roomId: roomId,
+          );
+
+          final ({String encryptedKey, String nonce}) encrypted = await cryptoDataSource.encryptRoomKey(
+            roomKey: roomKey,
+            pairwiseKey: pairwiseKey,
+          );
+
+          missingRows.add(<String, dynamic>{
+            'room_id': roomId,
+            'user_id': entry.key,
+            'sender_id': userId,
+            'encrypted_key': encrypted.encryptedKey,
+            'nonce': encrypted.nonce,
+          });
+        }
+      }
+
+      if (missingRows.isNotEmpty) {
+        await remoteDataSource.saveRoomKeys(roomKeys: missingRows);
+      }
+    } on Exception catch (e) {
+      if (kDebugMode) {
+        print('Erreur _syncMissingRoomKeys: $e');
+      }
+    }
+  }
+
   @override
   Future<Either<Failure, MessageEntity>> sendEncryptedMessage({required SendEncryptedMessageParams params}) async {
     try {
       final String userId = _currentUserId;
-      final List<String> activePeerKeys = await remoteDataSource.getActiveRoomPeerPublicKeys(
+
+      final SecretKey secretKey = await _getOrEnsureRoomKey(
+        userId: userId,
         roomId: params.roomId,
+        peerPublicKeyBase64: params.peerPublicKeyBase64,
       );
 
-      String peerKey;
-      if (params.peerPublicKeyBase64 != null) {
-        peerKey = params.peerPublicKeyBase64!;
-      } else if (activePeerKeys.isNotEmpty) {
-        peerKey = activePeerKeys.first;
-        unawaited(
-          cryptoDataSource.rememberRoomPeerKey(
-            userId: userId,
-            roomId: params.roomId,
-            peerPublicKeyBase64: peerKey,
-          ),
+      EncryptedMediaAttachment? attachment;
+      String payloadToEncrypt = params.plainText;
+
+      // 1. Chiffrement hybride du fichier média si présent
+      if (params.mediaBytes != null && params.mediaBytes!.isNotEmpty) {
+        final String fileExtension = params.mediaFileName?.split('.').last ?? 'bin';
+        final ({Uint8List encryptedBytes, String fileKeyBase64, String nonceBase64}) mediaEncrypted =
+            await cryptoDataSource.encryptMediaFile(params.mediaBytes!);
+
+        final String storagePath = await remoteDataSource.uploadEncryptedMedia(
+          encryptedBytes: mediaEncrypted.encryptedBytes,
+          fileExtension: fileExtension,
         );
-      } else {
-        // Seul dans le salon : chiffrement avec sa propre clé publique
-        peerKey = await cryptoDataSource.getPublicKeyBase64(userId: userId);
+
+        attachment = EncryptedMediaAttachment(
+          storagePath: storagePath,
+          fileKeyBase64: mediaEncrypted.fileKeyBase64,
+          nonceBase64: mediaEncrypted.nonceBase64,
+          fileName: params.mediaFileName ?? 'attachment.$fileExtension',
+          fileSize: params.mediaBytes!.length,
+          mimeType: params.mediaMimeType ?? 'application/octet-stream',
+        );
+
+        payloadToEncrypt = jsonEncode(<String, dynamic>{
+          'text': params.plainText,
+          'attachment': attachment.toJson(),
+        });
       }
 
-      final SecretKey secretKey = await cryptoDataSource.deriveSharedKey(
-        userId: userId,
-        peerPublicKeyBase64: peerKey,
-        roomId: params.roomId,
-      );
-
+      // 2. Chiffrement E2EE de l'enveloppe
       final ({String ciphertext, String fingerprint, String nonce}) encrypted = await cryptoDataSource.encrypt(
         userId: userId,
-        plainText: params.plainText,
+        plainText: payloadToEncrypt,
         secretKey: secretKey,
       );
 
@@ -135,6 +289,7 @@ class ChatRepositoryImpl extends ChatRepository {
         keyFingerprint: created.keyFingerprint,
         createdAt: created.createdAt,
         mediaUrl: created.mediaUrl,
+        attachment: attachment,
       );
 
       unawaited(localDataSource.saveMessage(entity));
@@ -198,7 +353,21 @@ class ChatRepositoryImpl extends ChatRepository {
         final String selfKey = await cryptoDataSource.getPublicKeyBase64(userId: userId);
         candidatePeerKeys.add(selfKey);
 
-        // 3. Dériver les SecretKeys correspondantes
+        // 3. Obtenir la clé de salon (Option 1 - Clé partagée E2EE)
+        SecretKey? roomKey;
+        try {
+          roomKey = await _getOrEnsureRoomKey(
+            userId: userId,
+            roomId: params.roomId,
+            peerPublicKeyBase64: params.peerPublicKeyBase64,
+          );
+        } on Exception catch (e) {
+          if (kDebugMode) {
+            print('Erreur récupération roomKey: $e');
+          }
+        }
+
+        // 4. Dériver les SecretKeys bilatérales correspondantes (Rétrocompatibilité)
         final List<SecretKey> candidateSecretKeys = <SecretKey>[];
         for (final String peerKey in candidatePeerKeys) {
           final SecretKey sk = await cryptoDataSource.deriveSharedKey(
@@ -209,7 +378,7 @@ class ChatRepositoryImpl extends ChatRepository {
           candidateSecretKeys.add(sk);
         }
 
-        // 4. Déchiffrer chaque message
+        // 5. Déchiffrer chaque message
         final List<MessageEntity> entities = <MessageEntity>[];
         final List<MessageEntity> newlyDecrypted = <MessageEntity>[];
 
@@ -223,23 +392,56 @@ class ChatRepositoryImpl extends ChatRepository {
             }
           }
 
-          String? decryptedText;
-          // Tester les clés candidates
-          for (final SecretKey sk in candidateSecretKeys) {
+          String? decryptedPayload;
+
+          // Essai 1 : Déchiffrement direct avec la clé de salon (Room Key)
+          if (roomKey != null) {
             try {
-              decryptedText = await cryptoDataSource.decrypt(
+              decryptedPayload = await cryptoDataSource.decrypt(
                 ciphertextBase64: model.ciphertext,
                 nonceBase64: model.nonce,
-                secretKey: sk,
+                secretKey: roomKey,
               );
-              break;
             } on Exception {
-              // Échec normal pour une mauvaise clé : continuer vers la clé candidate suivante
+              // Si échec (ex: ancien message d'avant la migration), tenter les clés bilatérales ci-dessous
             }
           }
 
-          final bool isSuccess = decryptedText != null;
-          final String finalText = isSuccess ? decryptedText : '🔒 [Message chiffré indéchiffrable]';
+          // Essai 2 : Rétrocompatibilité avec les clés bilatérales candidates
+          if (decryptedPayload == null) {
+            for (final SecretKey sk in candidateSecretKeys) {
+              try {
+                decryptedPayload = await cryptoDataSource.decrypt(
+                  ciphertextBase64: model.ciphertext,
+                  nonceBase64: model.nonce,
+                  secretKey: sk,
+                );
+                break;
+              } on Exception {
+                // Échec normal pour une mauvaise clé : continuer vers la clé candidate suivante
+              }
+            }
+          }
+
+          final bool isSuccess = decryptedPayload != null;
+          String finalText = isSuccess ? decryptedPayload : '🔒 [Message chiffré indéchiffrable]';
+          EncryptedMediaAttachment? attachment;
+
+          if (isSuccess) {
+            try {
+              final dynamic decoded = jsonDecode(decryptedPayload);
+              if (decoded is Map<String, dynamic> && decoded.containsKey('attachment')) {
+                final dynamic textVal = decoded['text'];
+                finalText = textVal is String ? textVal : '';
+                final dynamic rawAttachment = decoded['attachment'];
+                if (rawAttachment is Map<String, dynamic>) {
+                  attachment = EncryptedMediaAttachment.fromJson(rawAttachment);
+                }
+              }
+            } on Exception {
+              // Format de message texte brut classique (rétro-compatible)
+            }
+          }
 
           final MessageEntity entity = MessageEntity(
             id: model.id,
@@ -249,6 +451,7 @@ class ChatRepositoryImpl extends ChatRepository {
             keyFingerprint: model.keyFingerprint,
             createdAt: model.createdAt,
             mediaUrl: model.mediaUrl,
+            attachment: attachment,
           );
 
           entities.add(entity);
@@ -271,6 +474,28 @@ class ChatRepositoryImpl extends ChatRepository {
         return const Left<Failure, List<MessageEntity>>(ChatFailure());
       }
     });
+  }
+
+  @override
+  Future<Either<Failure, Uint8List>> downloadAndDecryptMedia({
+    required EncryptedMediaAttachment attachment,
+  }) async {
+    try {
+      final Uint8List encryptedBytes = await remoteDataSource.downloadEncryptedMedia(
+        storagePath: attachment.storagePath,
+      );
+      final Uint8List decryptedBytes = await cryptoDataSource.decryptMediaFile(
+        encryptedBytes: encryptedBytes,
+        fileKeyBase64: attachment.fileKeyBase64,
+        nonceBase64: attachment.nonceBase64,
+      );
+      return Right<Failure, Uint8List>(decryptedBytes);
+    } on Exception catch (e, stack) {
+      if (kDebugMode) {
+        print('Erreur downloadAndDecryptMedia: $e\n$stack');
+      }
+      return const Left<Failure, Uint8List>(CryptoFailure());
+    }
   }
 
   @override

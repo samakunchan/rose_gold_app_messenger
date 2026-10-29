@@ -7,6 +7,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:rose_gold_app_messenger/features/chat/presentation/di/chat_d_i.dart';
 import 'package:rose_gold_app_messenger/features/core/database/app_database.dart';
 import 'package:rose_gold_app_messenger/features/feedback/di/feedback_d_i.dart';
+import 'package:rose_gold_app_messenger/features/media/presentation/di/media_d_i.dart';
 import 'package:rose_gold_app_messenger/features/moderation/presentation/di/moderation_d_i.dart';
 import 'package:rose_gold_app_messenger/features/presences/presentation/di/presences_d_i.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/di/rooms_d_i.dart';
@@ -53,5 +54,6 @@ Future<void> initDI() async {
   initSupabaseRoomInvitationsDI();
   initModerationDI();
   initSettingsDI();
+  initMediaDI();
   initChatDI();
 }

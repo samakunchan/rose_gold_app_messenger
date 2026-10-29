@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:rose_gold_app_messenger/features/chat/presentation/view_models/message_view_model.dart';
+import 'package:rose_gold_app_messenger/features/chat/presentation/widgets/chat_media_attachment_bubble.dart';
 import 'package:rose_gold_app_messenger/themes/themes_all_export.dart';
 
 class ChatMessageBubble extends StatelessWidget {
@@ -23,7 +24,6 @@ class ChatMessageBubble extends StatelessWidget {
             borderRadius: chatTheme.outgoingBorderRadius,
             border: chatTheme.outgoingBorder,
             boxShadow: chatTheme.outgoingShadows,
-            // color: chatTheme.incomingBubbleColor,
           )
         : BoxDecoration(
             color: chatTheme.incomingBubbleColor,
@@ -47,7 +47,8 @@ class ChatMessageBubble extends StatelessWidget {
             mainAxisSize: .min,
             spacing: AppSpacing.spaceXs.value,
             children: <Widget>[
-              Text(message.content, style: theme.textTheme.bodyMedium?.copyWith(color: textColor)),
+              if (message.hasMedia) ChatMediaAttachmentBubble(message: message),
+              if (message.content.isNotEmpty) Text(message.content, style: theme.textTheme.bodyMedium?.copyWith(color: textColor)),
               Row(
                 mainAxisSize: .min,
                 children: <Widget>[
@@ -57,11 +58,7 @@ class ChatMessageBubble extends StatelessWidget {
                   ),
                   if (isMe) ...<Widget>[
                     const SizedBox(width: 4),
-                    Icon(
-                      Icons.done_all,
-                      size: 14,
-                      color: textColor.withValues(alpha: 0.7),
-                    ),
+                    Icon(Icons.done_all, size: 14, color: textColor.withValues(alpha: 0.7)),
                   ],
                 ],
               ),

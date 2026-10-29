@@ -7,6 +7,7 @@ class LocalMessages extends Table {
   TextColumn get decryptedContent => text()();
   TextColumn get keyFingerprint => text()();
   TextColumn get mediaUrl => text().nullable()();
+  TextColumn get attachmentJson => text().nullable()();
   TextColumn get createdAt => text()();
 
   @override

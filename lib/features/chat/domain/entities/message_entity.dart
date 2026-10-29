@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:rose_gold_app_messenger/features/chat/domain/entities/encrypted_media_attachment.dart';
 
 class MessageEntity extends Equatable {
   const new({
@@ -9,6 +10,7 @@ class MessageEntity extends Equatable {
     required this.keyFingerprint,
     required this.createdAt,
     this.mediaUrl,
+    this.attachment,
   });
 
   final String id;
@@ -18,6 +20,7 @@ class MessageEntity extends Equatable {
   final String keyFingerprint;
   final String createdAt;
   final String? mediaUrl;
+  final EncryptedMediaAttachment? attachment;
 
   @override
   List<Object?> get props => <Object?>[
@@ -28,5 +31,6 @@ class MessageEntity extends Equatable {
         keyFingerprint,
         createdAt,
         mediaUrl,
+        attachment,
       ];
 }

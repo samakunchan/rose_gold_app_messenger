@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
+import 'package:rose_gold_app_messenger/features/chat/domain/entities/encrypted_media_attachment.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/entities/message_entity.dart';
 import 'package:rose_gold_app_messenger/features/core/database/app_database.dart';
 
@@ -19,6 +22,8 @@ class ChatLocalDataSourceImpl extends ChatLocalDataSource {
 
   @override
   Future<void> saveMessage(MessageEntity message) async {
+    final String? attachmentJson = message.attachment != null ? jsonEncode(message.attachment!.toJson()) : null;
+
     await database
         .into(database.localMessages)
         .insertOnConflictUpdate(
@@ -29,6 +34,7 @@ class ChatLocalDataSourceImpl extends ChatLocalDataSource {
             decryptedContent: message.decryptedContent,
             keyFingerprint: message.keyFingerprint,
             mediaUrl: Value<String?>(message.mediaUrl),
+            attachmentJson: Value<String?>(attachmentJson),
             createdAt: message.createdAt,
           ),
         );
@@ -40,15 +46,19 @@ class ChatLocalDataSourceImpl extends ChatLocalDataSource {
       batch.insertAllOnConflictUpdate(
         database.localMessages,
         messages.map(
-          (MessageEntity message) => LocalMessagesCompanion.insert(
-            id: message.id,
-            roomId: message.roomId,
-            senderId: message.senderId,
-            decryptedContent: message.decryptedContent,
-            keyFingerprint: message.keyFingerprint,
-            mediaUrl: Value<String?>(message.mediaUrl),
-            createdAt: message.createdAt,
-          ),
+          (MessageEntity message) {
+            final String? attachmentJson = message.attachment != null ? jsonEncode(message.attachment!.toJson()) : null;
+            return LocalMessagesCompanion.insert(
+              id: message.id,
+              roomId: message.roomId,
+              senderId: message.senderId,
+              decryptedContent: message.decryptedContent,
+              keyFingerprint: message.keyFingerprint,
+              mediaUrl: Value<String?>(message.mediaUrl),
+              attachmentJson: Value<String?>(attachmentJson),
+              createdAt: message.createdAt,
+            );
+          },
         ),
       );
     });
@@ -111,6 +121,18 @@ class ChatLocalDataSourceImpl extends ChatLocalDataSource {
   }
 
   MessageEntity _toEntity(LocalMessage row) {
+    EncryptedMediaAttachment? attachment;
+    if (row.attachmentJson != null && row.attachmentJson!.isNotEmpty) {
+      try {
+        final dynamic decoded = jsonDecode(row.attachmentJson!);
+        if (decoded is Map<String, dynamic>) {
+          attachment = EncryptedMediaAttachment.fromJson(decoded);
+        }
+      } on Exception {
+        attachment = null;
+      }
+    }
+
     return MessageEntity(
       id: row.id,
       roomId: row.roomId,
@@ -119,6 +141,7 @@ class ChatLocalDataSourceImpl extends ChatLocalDataSource {
       keyFingerprint: row.keyFingerprint,
       createdAt: row.createdAt,
       mediaUrl: row.mediaUrl,
+      attachment: attachment,
     );
   }
 }

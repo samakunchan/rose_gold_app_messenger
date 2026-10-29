@@ -1,14 +1,22 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:rose_gold_app_messenger/features/chat/presentation/signals/chat_signals.dart';
 import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
+import 'package:rose_gold_app_messenger/features/media/domain/entities/picked_media.dart';
+import 'package:rose_gold_app_messenger/features/media/presentation/widgets/app_media_picker_bottom_sheet.dart';
 import 'package:rose_gold_app_messenger/themes/themes_all_export.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 class ChatInputField extends StatefulWidget {
-  const new({required this.roomId, this.peerPublicKeyBase64, super.key});
+  const new({
+    required this.roomId,
+    this.peerPublicKeyBase64,
+    this.onMessageSent,
+    super.key,
+  });
 
   final String roomId;
   final String? peerPublicKeyBase64;
+  final VoidCallback? onMessageSent;
 
   @override
   State<ChatInputField> createState() => _ChatInputFieldState();
@@ -32,11 +40,41 @@ class _ChatInputFieldState extends State<ChatInputField> {
     final ChatSignals chatSignals = kGetIt<ChatSignals>();
     _controller.clear();
 
-    await chatSignals.sendMessage(
+    final bool success = await chatSignals.sendMessage(
       roomId: widget.roomId,
       plainText: text,
       peerPublicKeyBase64: widget.peerPublicKeyBase64,
     );
+    if (success) {
+      widget.onMessageSent?.call();
+    }
+  }
+
+  Future<void> _handlePickMedia() async {
+    final PickedMedia? media = await AppMediaPickerBottomSheet.show(
+      context,
+      title: 'Joindre un média chiffré',
+      allowVideo: true,
+    );
+    if (media == null || !mounted) {
+      return;
+    }
+
+    final ChatSignals chatSignals = kGetIt<ChatSignals>();
+    final String text = _controller.text.trim();
+    _controller.clear();
+
+    final bool success = await chatSignals.sendMessage(
+      roomId: widget.roomId,
+      plainText: text,
+      peerPublicKeyBase64: widget.peerPublicKeyBase64,
+      mediaBytes: media.bytes,
+      mediaFileName: media.fileName,
+      mediaMimeType: media.mimeType,
+    );
+    if (success) {
+      widget.onMessageSent?.call();
+    }
   }
 
   @override
@@ -50,7 +88,7 @@ class _ChatInputFieldState extends State<ChatInputField> {
 
         return Container(
           padding: .only(
-            left: AppSpacing.spaceMd.value,
+            left: AppSpacing.spaceSm.value,
             right: AppSpacing.spaceSm.value,
             top: AppSpacing.spaceSm.value,
             bottom: AppSpacing.spaceSm.value,
@@ -67,6 +105,11 @@ class _ChatInputFieldState extends State<ChatInputField> {
             top: false,
             child: Row(
               children: <Widget>[
+                IconButton(
+                  onPressed: isSending ? null : _handlePickMedia,
+                  icon: Icon(Icons.add_photo_alternate_outlined, color: theme.colorScheme.primary),
+                  tooltip: 'Joindre un média chiffré',
+                ),
                 Expanded(
                   child: TextField(
                     controller: _controller,
@@ -89,11 +132,7 @@ class _ChatInputFieldState extends State<ChatInputField> {
                 IconButton.filled(
                   onPressed: isSending ? null : _handleSend,
                   icon: isSending
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
+                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
                       : const Icon(Icons.send_rounded),
                 ),
               ],

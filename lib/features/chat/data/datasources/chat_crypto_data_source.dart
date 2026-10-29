@@ -39,6 +39,27 @@ abstract class ChatCryptoDataSource {
     required String nonceBase64,
     required SecretKey secretKey,
   });
+  Future<({Uint8List encryptedBytes, String fileKeyBase64, String nonceBase64})> encryptMediaFile(
+    Uint8List rawBytes,
+  );
+  Future<Uint8List> decryptMediaFile({
+    required Uint8List encryptedBytes,
+    required String fileKeyBase64,
+    required String nonceBase64,
+  });
+  Future<SecretKey?> getRoomKey({required String roomId});
+  Future<void> storeRoomKey({required String roomId, required SecretKey roomKey});
+  Future<SecretKey> generateAndStoreRoomKey({required String roomId});
+  Future<({String encryptedKey, String nonce})> encryptRoomKey({
+    required SecretKey roomKey,
+    required SecretKey pairwiseKey,
+  });
+  Future<SecretKey> decryptRoomKey({
+    required String encryptedKeyBase64,
+    required String nonceBase64,
+    required SecretKey pairwiseKey,
+    required String roomId,
+  });
 }
 
 class ChatCryptoDataSourceImpl extends ChatCryptoDataSource {
@@ -219,6 +240,7 @@ class ChatCryptoDataSourceImpl extends ChatCryptoDataSource {
 
     final SecretKey derivedKey = await hkdf.deriveKey(
       secretKey: sharedSecret,
+      nonce: List<int>.filled(32, 0),
       info: utf8.encode('room:$roomId'),
     );
 
@@ -307,5 +329,129 @@ class ChatCryptoDataSourceImpl extends ChatCryptoDataSource {
       secretKey: secretKey,
     );
     return utf8.decode(plainBytes);
+  }
+
+  @override
+  Future<({Uint8List encryptedBytes, String fileKeyBase64, String nonceBase64})> encryptMediaFile(
+    Uint8List rawBytes,
+  ) async {
+    final SecretKey fileKey = await _cipher.newSecretKey();
+    final SecretBox box = await _cipher.encrypt(
+      rawBytes,
+      secretKey: fileKey,
+    );
+    final List<int> keyBytes = await fileKey.extractBytes();
+    final Uint8List combined = Uint8List.fromList(<int>[...box.cipherText, ...box.mac.bytes]);
+
+    return (
+      encryptedBytes: combined,
+      fileKeyBase64: base64Encode(keyBytes),
+      nonceBase64: base64Encode(box.nonce),
+    );
+  }
+
+  @override
+  Future<Uint8List> decryptMediaFile({
+    required Uint8List encryptedBytes,
+    required String fileKeyBase64,
+    required String nonceBase64,
+  }) async {
+    const int macLength = 16;
+    if (encryptedBytes.length < macLength) {
+      throw const FormatException('Données de média chiffré invalides');
+    }
+
+    final Uint8List cipherBytes = encryptedBytes.sublist(0, encryptedBytes.length - macLength);
+    final Uint8List macBytes = encryptedBytes.sublist(encryptedBytes.length - macLength);
+
+    final SecretBox box = SecretBox(
+      cipherBytes,
+      nonce: base64Decode(nonceBase64),
+      mac: Mac(macBytes),
+    );
+
+    final SecretKey secretKey = SecretKey(base64Decode(fileKeyBase64));
+
+    final List<int> plainBytes = await _cipher.decrypt(
+      box,
+      secretKey: secretKey,
+    );
+    return Uint8List.fromList(plainBytes);
+  }
+
+  final Map<String, SecretKey> _cachedRoomKeys = <String, SecretKey>{};
+  String _roomKeyStorageKey(String roomId) => 'e2ee_room_key_$roomId';
+
+  @override
+  Future<SecretKey?> getRoomKey({required String roomId}) async {
+    if (_cachedRoomKeys.containsKey(roomId)) {
+      return _cachedRoomKeys[roomId];
+    }
+    final String? stored = await secureStorage.read(key: _roomKeyStorageKey(roomId));
+    if (stored != null && stored.isNotEmpty) {
+      final SecretKey key = SecretKey(base64Decode(stored));
+      _cachedRoomKeys[roomId] = key;
+      return key;
+    }
+    return null;
+  }
+
+  @override
+  Future<void> storeRoomKey({required String roomId, required SecretKey roomKey}) async {
+    _cachedRoomKeys[roomId] = roomKey;
+    final List<int> bytes = await roomKey.extractBytes();
+    await secureStorage.write(key: _roomKeyStorageKey(roomId), value: base64Encode(bytes));
+  }
+
+  @override
+  Future<SecretKey> generateAndStoreRoomKey({required String roomId}) async {
+    final SecretKey key = await _cipher.newSecretKey();
+    await storeRoomKey(roomId: roomId, roomKey: key);
+    return key;
+  }
+
+  @override
+  Future<({String encryptedKey, String nonce})> encryptRoomKey({
+    required SecretKey roomKey,
+    required SecretKey pairwiseKey,
+  }) async {
+    final List<int> roomKeyBytes = await roomKey.extractBytes();
+    final SecretBox box = await _cipher.encrypt(
+      roomKeyBytes,
+      secretKey: pairwiseKey,
+    );
+    final Uint8List combined = Uint8List.fromList(<int>[...box.cipherText, ...box.mac.bytes]);
+    return (
+      encryptedKey: base64Encode(combined),
+      nonce: base64Encode(box.nonce),
+    );
+  }
+
+  @override
+  Future<SecretKey> decryptRoomKey({
+    required String encryptedKeyBase64,
+    required String nonceBase64,
+    required SecretKey pairwiseKey,
+    required String roomId,
+  }) async {
+    final Uint8List combined = base64Decode(encryptedKeyBase64);
+    const int macLength = 16;
+    if (combined.length < macLength) {
+      throw const FormatException('Clé de salon chiffrée invalide');
+    }
+    final Uint8List cipherBytes = combined.sublist(0, combined.length - macLength);
+    final Uint8List macBytes = combined.sublist(combined.length - macLength);
+    final SecretBox box = SecretBox(
+      cipherBytes,
+      nonce: base64Decode(nonceBase64),
+      mac: Mac(macBytes),
+    );
+    final List<int> rawBytes = await _cipher.decrypt(
+      box,
+      secretKey: pairwiseKey,
+    );
+    final SecretKey roomKey = SecretKey(rawBytes);
+    await storeRoomKey(roomId: roomId, roomKey: roomKey);
+    return roomKey;
   }
 }

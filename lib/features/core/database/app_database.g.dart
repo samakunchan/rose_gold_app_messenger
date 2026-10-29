@@ -71,6 +71,17 @@ class $LocalMessagesTable extends LocalMessages
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _attachmentJsonMeta = const VerificationMeta(
+    'attachmentJson',
+  );
+  @override
+  late final GeneratedColumn<String> attachmentJson = GeneratedColumn<String>(
+    'attachment_json',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -90,6 +101,7 @@ class $LocalMessagesTable extends LocalMessages
     decryptedContent,
     keyFingerprint,
     mediaUrl,
+    attachmentJson,
     createdAt,
   ];
   @override
@@ -153,6 +165,15 @@ class $LocalMessagesTable extends LocalMessages
         mediaUrl.isAcceptableOrUnknown(data['media_url']!, _mediaUrlMeta),
       );
     }
+    if (data.containsKey('attachment_json')) {
+      context.handle(
+        _attachmentJsonMeta,
+        attachmentJson.isAcceptableOrUnknown(
+          data['attachment_json']!,
+          _attachmentJsonMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -194,6 +215,10 @@ class $LocalMessagesTable extends LocalMessages
         DriftSqlType.string,
         data['${effectivePrefix}media_url'],
       ),
+      attachmentJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}attachment_json'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}created_at'],
@@ -214,6 +239,7 @@ class LocalMessage extends DataClass implements Insertable<LocalMessage> {
   final String decryptedContent;
   final String keyFingerprint;
   final String? mediaUrl;
+  final String? attachmentJson;
   final String createdAt;
   const LocalMessage({
     required this.id,
@@ -222,6 +248,7 @@ class LocalMessage extends DataClass implements Insertable<LocalMessage> {
     required this.decryptedContent,
     required this.keyFingerprint,
     this.mediaUrl,
+    this.attachmentJson,
     required this.createdAt,
   });
   @override
@@ -234,6 +261,9 @@ class LocalMessage extends DataClass implements Insertable<LocalMessage> {
     map['key_fingerprint'] = Variable<String>(keyFingerprint);
     if (!nullToAbsent || mediaUrl != null) {
       map['media_url'] = Variable<String>(mediaUrl);
+    }
+    if (!nullToAbsent || attachmentJson != null) {
+      map['attachment_json'] = Variable<String>(attachmentJson);
     }
     map['created_at'] = Variable<String>(createdAt);
     return map;
@@ -249,6 +279,9 @@ class LocalMessage extends DataClass implements Insertable<LocalMessage> {
       mediaUrl: mediaUrl == null && nullToAbsent
           ? const Value.absent()
           : Value(mediaUrl),
+      attachmentJson: attachmentJson == null && nullToAbsent
+          ? const Value.absent()
+          : Value(attachmentJson),
       createdAt: Value(createdAt),
     );
   }
@@ -265,6 +298,7 @@ class LocalMessage extends DataClass implements Insertable<LocalMessage> {
       decryptedContent: serializer.fromJson<String>(json['decryptedContent']),
       keyFingerprint: serializer.fromJson<String>(json['keyFingerprint']),
       mediaUrl: serializer.fromJson<String?>(json['mediaUrl']),
+      attachmentJson: serializer.fromJson<String?>(json['attachmentJson']),
       createdAt: serializer.fromJson<String>(json['createdAt']),
     );
   }
@@ -278,6 +312,7 @@ class LocalMessage extends DataClass implements Insertable<LocalMessage> {
       'decryptedContent': serializer.toJson<String>(decryptedContent),
       'keyFingerprint': serializer.toJson<String>(keyFingerprint),
       'mediaUrl': serializer.toJson<String?>(mediaUrl),
+      'attachmentJson': serializer.toJson<String?>(attachmentJson),
       'createdAt': serializer.toJson<String>(createdAt),
     };
   }
@@ -289,6 +324,7 @@ class LocalMessage extends DataClass implements Insertable<LocalMessage> {
     String? decryptedContent,
     String? keyFingerprint,
     Value<String?> mediaUrl = const Value.absent(),
+    Value<String?> attachmentJson = const Value.absent(),
     String? createdAt,
   }) => LocalMessage(
     id: id ?? this.id,
@@ -297,6 +333,9 @@ class LocalMessage extends DataClass implements Insertable<LocalMessage> {
     decryptedContent: decryptedContent ?? this.decryptedContent,
     keyFingerprint: keyFingerprint ?? this.keyFingerprint,
     mediaUrl: mediaUrl.present ? mediaUrl.value : this.mediaUrl,
+    attachmentJson: attachmentJson.present
+        ? attachmentJson.value
+        : this.attachmentJson,
     createdAt: createdAt ?? this.createdAt,
   );
   LocalMessage copyWithCompanion(LocalMessagesCompanion data) {
@@ -311,6 +350,9 @@ class LocalMessage extends DataClass implements Insertable<LocalMessage> {
           ? data.keyFingerprint.value
           : this.keyFingerprint,
       mediaUrl: data.mediaUrl.present ? data.mediaUrl.value : this.mediaUrl,
+      attachmentJson: data.attachmentJson.present
+          ? data.attachmentJson.value
+          : this.attachmentJson,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
@@ -324,6 +366,7 @@ class LocalMessage extends DataClass implements Insertable<LocalMessage> {
           ..write('decryptedContent: $decryptedContent, ')
           ..write('keyFingerprint: $keyFingerprint, ')
           ..write('mediaUrl: $mediaUrl, ')
+          ..write('attachmentJson: $attachmentJson, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
@@ -337,6 +380,7 @@ class LocalMessage extends DataClass implements Insertable<LocalMessage> {
     decryptedContent,
     keyFingerprint,
     mediaUrl,
+    attachmentJson,
     createdAt,
   );
   @override
@@ -349,6 +393,7 @@ class LocalMessage extends DataClass implements Insertable<LocalMessage> {
           other.decryptedContent == this.decryptedContent &&
           other.keyFingerprint == this.keyFingerprint &&
           other.mediaUrl == this.mediaUrl &&
+          other.attachmentJson == this.attachmentJson &&
           other.createdAt == this.createdAt);
 }
 
@@ -359,6 +404,7 @@ class LocalMessagesCompanion extends UpdateCompanion<LocalMessage> {
   final Value<String> decryptedContent;
   final Value<String> keyFingerprint;
   final Value<String?> mediaUrl;
+  final Value<String?> attachmentJson;
   final Value<String> createdAt;
   final Value<int> rowid;
   const LocalMessagesCompanion({
@@ -368,6 +414,7 @@ class LocalMessagesCompanion extends UpdateCompanion<LocalMessage> {
     this.decryptedContent = const Value.absent(),
     this.keyFingerprint = const Value.absent(),
     this.mediaUrl = const Value.absent(),
+    this.attachmentJson = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -378,6 +425,7 @@ class LocalMessagesCompanion extends UpdateCompanion<LocalMessage> {
     required String decryptedContent,
     required String keyFingerprint,
     this.mediaUrl = const Value.absent(),
+    this.attachmentJson = const Value.absent(),
     required String createdAt,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -393,6 +441,7 @@ class LocalMessagesCompanion extends UpdateCompanion<LocalMessage> {
     Expression<String>? decryptedContent,
     Expression<String>? keyFingerprint,
     Expression<String>? mediaUrl,
+    Expression<String>? attachmentJson,
     Expression<String>? createdAt,
     Expression<int>? rowid,
   }) {
@@ -403,6 +452,7 @@ class LocalMessagesCompanion extends UpdateCompanion<LocalMessage> {
       if (decryptedContent != null) 'decrypted_content': decryptedContent,
       if (keyFingerprint != null) 'key_fingerprint': keyFingerprint,
       if (mediaUrl != null) 'media_url': mediaUrl,
+      if (attachmentJson != null) 'attachment_json': attachmentJson,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
     });
@@ -415,6 +465,7 @@ class LocalMessagesCompanion extends UpdateCompanion<LocalMessage> {
     Value<String>? decryptedContent,
     Value<String>? keyFingerprint,
     Value<String?>? mediaUrl,
+    Value<String?>? attachmentJson,
     Value<String>? createdAt,
     Value<int>? rowid,
   }) {
@@ -425,6 +476,7 @@ class LocalMessagesCompanion extends UpdateCompanion<LocalMessage> {
       decryptedContent: decryptedContent ?? this.decryptedContent,
       keyFingerprint: keyFingerprint ?? this.keyFingerprint,
       mediaUrl: mediaUrl ?? this.mediaUrl,
+      attachmentJson: attachmentJson ?? this.attachmentJson,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
     );
@@ -451,6 +503,9 @@ class LocalMessagesCompanion extends UpdateCompanion<LocalMessage> {
     if (mediaUrl.present) {
       map['media_url'] = Variable<String>(mediaUrl.value);
     }
+    if (attachmentJson.present) {
+      map['attachment_json'] = Variable<String>(attachmentJson.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<String>(createdAt.value);
     }
@@ -469,6 +524,7 @@ class LocalMessagesCompanion extends UpdateCompanion<LocalMessage> {
           ..write('decryptedContent: $decryptedContent, ')
           ..write('keyFingerprint: $keyFingerprint, ')
           ..write('mediaUrl: $mediaUrl, ')
+          ..write('attachmentJson: $attachmentJson, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -495,6 +551,7 @@ typedef $$LocalMessagesTableCreateCompanionBuilder =
       required String decryptedContent,
       required String keyFingerprint,
       Value<String?> mediaUrl,
+      Value<String?> attachmentJson,
       required String createdAt,
       Value<int> rowid,
     });
@@ -506,6 +563,7 @@ typedef $$LocalMessagesTableUpdateCompanionBuilder =
       Value<String> decryptedContent,
       Value<String> keyFingerprint,
       Value<String?> mediaUrl,
+      Value<String?> attachmentJson,
       Value<String> createdAt,
       Value<int> rowid,
     });
@@ -546,6 +604,11 @@ class $$LocalMessagesTableFilterComposer
 
   ColumnFilters<String> get mediaUrl => $composableBuilder(
     column: $table.mediaUrl,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get attachmentJson => $composableBuilder(
+    column: $table.attachmentJson,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -594,6 +657,11 @@ class $$LocalMessagesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get attachmentJson => $composableBuilder(
+    column: $table.attachmentJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -630,6 +698,11 @@ class $$LocalMessagesTableAnnotationComposer
 
   GeneratedColumn<String> get mediaUrl =>
       $composableBuilder(column: $table.mediaUrl, builder: (column) => column);
+
+  GeneratedColumn<String> get attachmentJson => $composableBuilder(
+    column: $table.attachmentJson,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -672,6 +745,7 @@ class $$LocalMessagesTableTableManager
                 Value<String> decryptedContent = const Value.absent(),
                 Value<String> keyFingerprint = const Value.absent(),
                 Value<String?> mediaUrl = const Value.absent(),
+                Value<String?> attachmentJson = const Value.absent(),
                 Value<String> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => LocalMessagesCompanion(
@@ -681,6 +755,7 @@ class $$LocalMessagesTableTableManager
                 decryptedContent: decryptedContent,
                 keyFingerprint: keyFingerprint,
                 mediaUrl: mediaUrl,
+                attachmentJson: attachmentJson,
                 createdAt: createdAt,
                 rowid: rowid,
               ),
@@ -692,6 +767,7 @@ class $$LocalMessagesTableTableManager
                 required String decryptedContent,
                 required String keyFingerprint,
                 Value<String?> mediaUrl = const Value.absent(),
+                Value<String?> attachmentJson = const Value.absent(),
                 required String createdAt,
                 Value<int> rowid = const Value.absent(),
               }) => LocalMessagesCompanion.insert(
@@ -701,6 +777,7 @@ class $$LocalMessagesTableTableManager
                 decryptedContent: decryptedContent,
                 keyFingerprint: keyFingerprint,
                 mediaUrl: mediaUrl,
+                attachmentJson: attachmentJson,
                 createdAt: createdAt,
                 rowid: rowid,
               ),

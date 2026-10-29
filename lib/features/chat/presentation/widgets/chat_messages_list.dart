@@ -24,15 +24,16 @@ class ChatMessagesList extends StatelessWidget {
 
     return ListView.builder(
       controller: scrollController,
+      reverse: true,
       padding: .only(top: AppSpacing.spaceSm.value, bottom: AppSpacing.spaceMd.value),
       itemCount: messages.length + 1,
       itemBuilder: (BuildContext context, int index) {
-        if (index == 0) {
+        if (index == messages.length) {
           return const E2eeSecurityBanner();
         }
 
-        final MessageViewModel message = messages[index - 1];
-        return ChatMessageBubble(message: message);
+        final MessageViewModel message = messages[messages.length - 1 - index];
+        return ChatMessageBubble(key: ValueKey<String>(message.id), message: message);
       },
     );
   }

@@ -40,12 +40,8 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
+    if (_scrollController.hasClients && _scrollController.offset > 0) {
+      _scrollController.animateTo(0, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
     }
   }
 
@@ -68,13 +64,15 @@ class _ChatScreenState extends State<ChatScreen> {
                     );
                   }
 
-                  WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
-
                   return ChatMessagesList(messages: messages, scrollController: _scrollController);
                 },
               ),
             ),
-            ChatInputField(roomId: widget.roomId, peerPublicKeyBase64: widget.peerPublicKeyBase64),
+            ChatInputField(
+              roomId: widget.roomId,
+              peerPublicKeyBase64: widget.peerPublicKeyBase64,
+              onMessageSent: _scrollToBottom,
+            ),
           ],
         ),
       ),
