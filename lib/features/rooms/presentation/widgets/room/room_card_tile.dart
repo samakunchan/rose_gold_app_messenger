@@ -1,8 +1,8 @@
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:rose_gold_app_messenger/extensions/string_extension.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/screens/room_screen.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/view_models/room_view_model.dart';
+import 'package:rose_gold_app_messenger/features/rooms/presentation/widgets/monogram_user.dart';
 import 'package:rose_gold_app_messenger/themes/extensions/rooms_theme_extension.dart';
 import 'package:rose_gold_app_messenger/themes/themes_all_export.dart';
 
@@ -17,7 +17,6 @@ class RoomCardTile extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     final RoomsThemeExtension roomsTheme = theme.extension<RoomsThemeExtension>() ?? .light;
     final FrontThemeExtension frontTheme = theme.extension<FrontThemeExtension>() ?? .light;
-    final String initial = room.name.isNotEmpty ? room.name.getInitialAvatar() : '#';
 
     return Container(
       decoration: BoxDecoration(
@@ -48,23 +47,10 @@ class RoomCardTile extends StatelessWidget {
             spacing: AppSpacing.spaceMd.value,
             children: <Widget>[
               // Médaillon élégant du salon avec dégradé Rose Gold
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  shape: .circle,
-                  // gradient: frontTheme.medallionGradient,
-                  gradient: roomsTheme.medaillonBackgroundGradient,
-                  border: .all(color: frontTheme.onlineRingColor, width: 1.2),
-                  boxShadow: <BoxShadow>[
-                    BoxShadow(color: theme.colorScheme.primary.withValues(alpha: 0.15), blurRadius: 6, offset: const Offset(0, 2)),
-                  ],
-                ),
-                alignment: .center,
-                child: Text(
-                  initial,
-                  style: theme.textTheme.titleLarge?.copyWith(color: roomsTheme.primaryTextColor),
-                ),
+              MonogramUser(
+                username: room.name,
+                avatarUrl: room.avatarUrl,
+                size: 50
               ),
 
               // Informations textuelles du salon

@@ -1,6 +1,11 @@
+import 'package:dart_either/dart_either.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
+import 'package:rose_gold_app_messenger/features/core/errors/failures.dart';
 import 'package:rose_gold_app_messenger/features/core/errors/show_errors_sheet.dart';
+import 'package:rose_gold_app_messenger/features/media/domain/entities/picked_media.dart';
+import 'package:rose_gold_app_messenger/features/media/domain/usecases/upload_public_avatar_use_case.dart';
+import 'package:rose_gold_app_messenger/features/media/presentation/widgets/app_media_picker_bottom_sheet.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/signals/rooms_signals.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/widgets/forms/room_avatar_result.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/widgets/forms/room_avatar_text_field.dart';
@@ -30,6 +35,10 @@ class _EditRoomOwnerFormState extends State<EditRoomOwnerForm> {
   late final TextEditingController _descriptionController;
   late final TextEditingController _avatarUrlController;
 
+  PickedMedia? _pickedAvatarMedia;
+  bool _avatarRemoved = false;
+  bool _isUploading = false;
+
   @override
   void initState() {
     super.initState();
@@ -46,19 +55,70 @@ class _EditRoomOwnerFormState extends State<EditRoomOwnerForm> {
     super.dispose();
   }
 
+  Future<void> _handlePickAvatar() async {
+    final PickedMedia? media = await AppMediaPickerBottomSheet.show(context, title: 'Avatar du salon');
+    if (media == null || !mounted) return;
+
+    setState(() {
+      _pickedAvatarMedia = media;
+      _avatarRemoved = false;
+    });
+  }
+
+  void _handleRemoveAvatar() {
+    setState(() {
+      _pickedAvatarMedia = null;
+      _avatarRemoved = true;
+      _avatarUrlController.clear();
+    });
+  }
+
   Future<void> _handleSave() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final RoomsSignals roomsSignals = widget.roomsSignals ?? kGetIt<RoomsSignals>();
     final String name = _nameController.text.trim();
     final String description = _descriptionController.text.trim();
-    final String avatarUrl = _avatarUrlController.text.trim();
+    String? avatarUrl = _avatarUrlController.text.trim();
+
+    if (_avatarRemoved) {
+      avatarUrl = null;
+    } else if (_pickedAvatarMedia != null) {
+      setState(() => _isUploading = true);
+      final UploadPublicAvatarUseCase uploadAvatarUseCase = kGetIt<UploadPublicAvatarUseCase>();
+      final Either<Failure, String> uploadResult = await uploadAvatarUseCase(
+        bytes: _pickedAvatarMedia!.bytes,
+        fileExtension: _pickedAvatarMedia!.fileExtension,
+        mimeType: _pickedAvatarMedia!.mimeType,
+        customPrefix: 'room_${widget.roomId}'
+      );
+      setState(() => _isUploading = false);
+
+      final (Failure? failure, String? uploadedUrl) = uploadResult.fold(
+        ifLeft: (Failure f) => (f, null),
+        ifRight: (String url) => (null, url)
+      );
+
+      if (failure != null || uploadedUrl == null) {
+        if (mounted) {
+          showErrorSheet(
+            context: context,
+            title: 'Erreur',
+            message: failure?.message ?? "Échec du téléversement de l'avatar du salon"
+          );
+        }
+        return;
+      }
+
+      avatarUrl = uploadedUrl;
+      _avatarUrlController.text = uploadedUrl;
+    }
 
     await roomsSignals.updateRoom(
       roomId: widget.roomId,
       name: name,
       description: description.isNotEmpty ? description : null,
-      avatarUrl: avatarUrl.isNotEmpty ? avatarUrl : null,
+      avatarUrl: avatarUrl?.isNotEmpty == true ? avatarUrl : null
     );
 
     if (!mounted) return;
@@ -68,14 +128,14 @@ class _EditRoomOwnerFormState extends State<EditRoomOwnerForm> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Salon "$name" mis à jour avec succès !'),
-          behavior: .floating,
-        ),
+          behavior: .floating
+        )
       );
     } else {
       showErrorSheet(
         context: context,
         title: 'Erreur',
-        message: 'Impossible de modifier le salon. Veuillez réessayer.',
+        message: 'Impossible de modifier le salon. Veuillez réessayer.'
       );
     }
   }
@@ -133,6 +193,12 @@ class _EditRoomOwnerFormState extends State<EditRoomOwnerForm> {
               RoomAvatarResult(
                 roomName: _nameController.text,
                 currentAvatarUrl: _avatarUrlController.text,
+                pickedMedia: _pickedAvatarMedia,
+                isUploading: _isUploading,
+                onPick: _handlePickAvatar,
+                onRemove: (_avatarUrlController.text.isNotEmpty || _pickedAvatarMedia != null)
+                    ? _handleRemoveAvatar
+                    : null
               ),
 
               // Champs de saisie
