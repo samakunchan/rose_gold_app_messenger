@@ -10,6 +10,7 @@ abstract class MediaRepository {
   Future<Either<Failure, String>> uploadPublicAvatar({
     required Uint8List bytes,
     required String fileExtension,
+    String? mimeType,
     String? customPrefix,
   });
 }
