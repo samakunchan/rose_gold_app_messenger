@@ -46,4 +46,10 @@ class ErrorMessage {
 
   /// Value: "Un problème est survenue lors de la gestion des paramètres."
   static const String defaultSettingFailureMessage = 'Un problème est survenue lors de la gestion des paramètres.';
+
+  /// Value: "Un problème est survenue lors de l‘envoi ou la réception du message."
+  static const String chatFailureMessage = 'Un problème est survenue lors de l‘envoi ou la réception du message.';
+
+  /// Value: "Un problème est survenue lors du chiffrement ou déchiffrement."
+  static const String cryptoFailureMessage = 'Un problème est survenue lors du chiffrement ou déchiffrement.';
 }

@@ -110,7 +110,16 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<Session?> getSession() async {
-    final Session? session = client.auth.currentSession;
+    Session? session = client.auth.currentSession;
+    if (session != null && session.isExpired) {
+      try {
+        final AuthResponse response = await client.auth.refreshSession();
+        session = response.session;
+      } on Exception catch (_) {
+        await client.auth.signOut();
+        return null;
+      }
+    }
 
     return session;
   }

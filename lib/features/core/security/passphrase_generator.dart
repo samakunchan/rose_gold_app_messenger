@@ -1,0 +1,50 @@
+import 'dart:math';
+
+class PassphraseGenerator {
+  const new();
+
+  static const List<String> wordList = <String>[
+    'soleil', 'lune', 'etoile', 'foret', 'riviere', 'montagne', 'ocean', 'nuage',
+    'fleur', 'arbre', 'vent', 'pluie', 'cascade', 'aurore', 'cristal', 'horizon',
+    'lumiere', 'ombre', 'source', 'jardin', 'sentier', 'colline', 'vallee', 'desert',
+    'oasis', 'prairie', 'feuille', 'racine', 'graine', 'sable', 'neige', 'glacier',
+    'volcan', 'ile', 'archipel', 'lagune', 'rocher', 'caverne', 'brise', 'tempete',
+    'comete', 'galaxie', 'nebuleuse', 'planete', 'univers', 'cosmos', 'eclair', 'tonnerre',
+    'aurore', 'crepuscule', 'aube', 'zenith', 'azur', 'ambre', 'corail', 'emeraude',
+    'rubis', 'saphir', 'perle', 'topaze', 'diamant', 'or', 'argent', 'platine',
+    'voyage', 'odyssee', 'aventure', 'destin', 'espoir', 'harmonie', 'serenite', 'courage',
+    'sagesse', 'liberte', 'mystere', 'secret', 'songe', 'reve', 'magie', 'legende',
+    'chanson', 'melodie', 'rythme', 'accordeon', 'violon', 'guitare', 'piano', 'flute',
+    'poesie', 'livre', 'histoire', 'conte', 'fable', 'memoire', 'souvenir', 'silence',
+    'echo', 'miroir', 'reflet', 'flamme', 'braise', 'etincelle', 'lueur', 'rayon',
+    'faucon', 'aigle', 'colibri', 'hirondelle', 'chouette', 'hibou', 'papillon', 'libellule',
+    'dauphin', 'baleine', 'loup', 'renard', 'cerf', 'tigre', 'lion', 'panthere',
+    'navire', 'bateau', 'voilier', 'boussole', 'carte', 'phare', 'port', 'ancre',
+    'chateau', 'palais', 'tour', 'pont', 'arche', 'dôme', 'citadelle', 'bastion',
+    'rose', 'jasmin', 'lotus', 'orchidee', 'lavande', 'menthe', 'vanille', 'cannelle',
+    'pomme', 'cerise', 'peche', 'orange', 'citron', 'mangue', 'ananas', 'fraise',
+    'douceur', 'amitie', 'partage', 'regard', 'sourire', 'lumiere', 'chemin', 'voyageur',
+    'etoile', 'constellation', 'satellite', 'flambeau', 'bouclier', 'clef', 'enigme', 'tresor',
+    'saphir', 'opale', 'jade', 'quartz', 'obsidienne', 'jaspe', 'grenat', 'amethyste',
+    'cafe', 'chocolat', 'miel', 'the', 'biscuit', 'caramel', 'noisette', 'amande',
+    'vague', 'écume', 'marée', 'courant', 'alizé', 'zen', 'calme', 'paix',
+    'instant', 'minute', 'seconde', 'saison', 'printemps', 'ete', 'automne', 'hiver',
+    'soleil', 'chaleur', 'douceur', 'rayon', 'espace', 'orbite', 'vitesse', 'vapeur',
+    'bambou', 'lierre', 'mousse', 'fougere', 'tulipe', 'violette', 'iris', 'magnolia',
+    'horizon', 'infini', 'refuge', 'havre', 'escale', 'bivouac', 'abris', 'nid',
+    'plume', 'aile', 'vol', 'envol', 'essor', 'elan', 'souffle', 'onde',
+    'boussole', 'repere', 'balise', 'signal', 'guide', 'flot', 'sillon', 'passage',
+    'cristal', 'prisme', 'spectre', 'reflet', 'image', 'vision', 'tableau', 'fresque',
+    'dialogue', 'parole', 'voix', 'murmure', 'secret', 'confiance', 'serment', 'alliance',
+  ];
+
+  static String generateRandomPassphrase([int wordCount = 12]) {
+    final Random random = Random.secure();
+    final List<String> words = <String>[];
+    for (int i = 0; i < wordCount; i++) {
+      final int index = random.nextInt(wordList.length);
+      words.add(wordList[index]);
+    }
+    return words.join(' ');
+  }
+}
