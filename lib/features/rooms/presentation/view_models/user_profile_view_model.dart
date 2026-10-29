@@ -13,4 +13,7 @@ class UserProfileViewModel {
 
   String get initial => _entity.username.isNotEmpty ? _entity.username[0].toUpperCase() : '?';
   String get displayName => '@$userTag';
+
+  UserProfileViewModel copyWith({String? username, String? userTag, String? avatarUrl}) =>
+      UserProfileViewModel(_entity.copyWith(username: username, userTag: userTag, avatarUrl: avatarUrl));
 }

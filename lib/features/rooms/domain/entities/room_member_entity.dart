@@ -21,4 +21,15 @@ class RoomMemberEntity extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[id, role, roomId, userId, joinedAt];
+
+  RoomMemberEntity copyWith({String? id, String? role, String? roomId, String? userId, String? joinedAt, String? username, String? avatarUrl}) =>
+      RoomMemberEntity(
+        id: id ?? this.id,
+        role: role ?? this.role,
+        roomId: roomId ?? this.roomId,
+        userId: userId ?? this.userId,
+        joinedAt: joinedAt ?? this.joinedAt,
+        username: username ?? this.username,
+        avatarUrl: avatarUrl ?? this.avatarUrl,
+      );
 }

@@ -15,4 +15,11 @@ class UserProfileEntity extends Equatable {
 
   @override
   List<Object?> get props => <Object?>[id, username, userTag, avatarUrl];
+
+  UserProfileEntity copyWith({String? id, String? username, String? userTag, String? avatarUrl}) => UserProfileEntity(
+    id: id ?? this.id,
+    username: username ?? this.username,
+    userTag: userTag ?? this.userTag,
+    avatarUrl: avatarUrl ?? this.avatarUrl,
+  );
 }

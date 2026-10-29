@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:rose_gold_app_messenger/extensions/string_extension.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/screens/room_screen.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/view_models/room_view_model.dart';
 import 'package:rose_gold_app_messenger/themes/extensions/rooms_theme_extension.dart';
@@ -16,7 +17,7 @@ class RoomCardTile extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     final RoomsThemeExtension roomsTheme = theme.extension<RoomsThemeExtension>() ?? .light;
     final FrontThemeExtension frontTheme = theme.extension<FrontThemeExtension>() ?? .light;
-    final String initial = room.name.isNotEmpty ? room.name[0].toUpperCase() : '#';
+    final String initial = room.name.isNotEmpty ? room.name.getInitialAvatar() : '#';
 
     return Container(
       decoration: BoxDecoration(
@@ -24,16 +25,8 @@ class RoomCardTile extends StatelessWidget {
         borderRadius: .all(.circular(AppRadius.lg.value)),
         border: .all(color: frontTheme.incomingBorderColor, width: 0.8),
         boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: frontTheme.onlineRingColor.withValues(alpha: 0.08),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-          BoxShadow(
-            color: theme.colorScheme.shadow.withValues(alpha: 0.03),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-          ),
+          BoxShadow(color: frontTheme.onlineRingColor.withValues(alpha: 0.08), blurRadius: 16, offset: const Offset(0, 4)),
+          BoxShadow(color: theme.colorScheme.shadow.withValues(alpha: 0.03), blurRadius: 4, offset: const Offset(0, 1)),
         ],
       ),
       child: InkWell(
@@ -64,11 +57,7 @@ class RoomCardTile extends StatelessWidget {
                   gradient: roomsTheme.medaillonBackgroundGradient,
                   border: .all(color: frontTheme.onlineRingColor, width: 1.2),
                   boxShadow: <BoxShadow>[
-                    BoxShadow(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.15),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
+                    BoxShadow(color: theme.colorScheme.primary.withValues(alpha: 0.15), blurRadius: 6, offset: const Offset(0, 2)),
                   ],
                 ),
                 alignment: .center,
@@ -91,10 +80,7 @@ class RoomCardTile extends StatelessWidget {
                         Expanded(
                           child: Text(
                             room.name,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: .bold,
-                              color: theme.colorScheme.onSurface,
-                            ),
+                            style: theme.textTheme.titleMedium?.copyWith(fontWeight: .bold, color: theme.colorScheme.onSurface),
                             maxLines: 1,
                             overflow: .ellipsis,
                           ),
@@ -126,10 +112,7 @@ class RoomCardTile extends StatelessWidget {
                             ),
                             child: Text(
                               'Membre',
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                fontWeight: .w600,
-                                color: kTaupeMutedTextColor,
-                              ),
+                              style: theme.textTheme.labelSmall?.copyWith(fontWeight: .w600, color: kTaupeMutedTextColor),
                             ),
                           ),
                       ],
@@ -160,11 +143,7 @@ class RoomCardTile extends StatelessWidget {
               ),
 
               // Chevron subtil doré
-              Icon(
-                Icons.chevron_right_rounded,
-                size: 20,
-                color: frontTheme.onlineRingColor.withValues(alpha: 0.6),
-              ),
+              Icon(Icons.chevron_right_rounded, size: 20, color: frontTheme.onlineRingColor.withValues(alpha: 0.6)),
             ],
           ),
         ),

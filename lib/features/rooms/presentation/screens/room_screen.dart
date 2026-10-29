@@ -86,10 +86,7 @@ class _RoomScreenState extends State<RoomScreen> {
                       onPressed: () {
                         Navigator.of(context).push(
                           MaterialPageRoute<void>(
-                            builder: (_) => ChatScreen(
-                              roomId: widget.roomId,
-                              roomName: roomName,
-                            ),
+                            builder: (_) => ChatScreen(roomId: widget.roomId, roomName: roomName),
                           ),
                         );
                       },

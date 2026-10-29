@@ -3,17 +3,11 @@ import 'package:rose_gold_app_messenger/features/rooms/presentation/widgets/mono
 import 'package:rose_gold_app_messenger/themes/themes_all_export.dart';
 
 class UserPresenceItem extends StatelessWidget {
-  const new({
-    required this.initial,
-    required this.displayName,
-    this.isOnline = false,
-    this.size = 48,
-    this.onTap,
-    super.key,
-  });
+  const new({required this.initial, required this.displayName, this.avatarUrl, this.isOnline = false, this.size = 48, this.onTap, super.key});
 
   final String initial;
   final String displayName;
+  final String? avatarUrl;
   final bool isOnline;
   final double size;
   final VoidCallback? onTap;
@@ -26,7 +20,7 @@ class UserPresenceItem extends StatelessWidget {
       mainAxisSize: .min,
       spacing: AppSpacing.spaceXs.value,
       children: <Widget>[
-        MonogramUser(username: displayName, isOnline: isOnline, size: size),
+        MonogramUser(username: displayName, avatarUrl: avatarUrl, isOnline: isOnline, size: size),
         SizedBox(
           width: size * 1.4,
           child: Text(
@@ -44,11 +38,7 @@ class UserPresenceItem extends StatelessWidget {
     );
 
     if (onTap != null) {
-      return InkWell(
-        onTap: onTap,
-        borderRadius: .all(.circular(AppRadius.defaultValue.value)),
-        child: content,
-      );
+      return InkWell(onTap: onTap, borderRadius: .all(.circular(AppRadius.defaultValue.value)), child: content);
     }
 
     return content;

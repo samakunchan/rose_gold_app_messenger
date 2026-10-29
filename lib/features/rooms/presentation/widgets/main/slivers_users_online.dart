@@ -65,10 +65,7 @@ class SliversUsersOnline extends SignalWidget {
                     decoration: BoxDecoration(
                       color: kSuccessColor.withValues(alpha: 0.15),
                       borderRadius: .all(.circular(AppRadius.full.value)),
-                      border: .all(
-                        color: kSuccessColor.withValues(alpha: 0.35),
-                        width: 0.8,
-                      ),
+                      border: .all(color: kSuccessColor.withValues(alpha: 0.35), width: 0.8),
                     ),
                     child: Row(
                       mainAxisSize: .min,
@@ -77,17 +74,11 @@ class SliversUsersOnline extends SignalWidget {
                         Container(
                           width: 6,
                           height: 6,
-                          decoration: const BoxDecoration(
-                            color: kSuccessColor,
-                            shape: .circle,
-                          ),
+                          decoration: const BoxDecoration(color: kSuccessColor, shape: .circle),
                         ),
                         Text(
                           '$onlineCount en ligne',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            fontWeight: .w600,
-                            color: kSuccessColor,
-                          ),
+                          style: theme.textTheme.labelSmall?.copyWith(fontWeight: .w600, color: kSuccessColor),
                         ),
                       ],
                     ),
@@ -104,6 +95,7 @@ class SliversUsersOnline extends SignalWidget {
                     UserPresenceItem(
                       initial: member.initial,
                       displayName: member.username,
+                      avatarUrl: member.avatarUrl,
                       isOnline: onlineUserIds.contains(member.id),
                     ),
                 ],
