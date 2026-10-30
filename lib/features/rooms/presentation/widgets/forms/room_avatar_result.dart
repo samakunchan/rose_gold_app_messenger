@@ -12,7 +12,7 @@ class RoomAvatarResult extends StatelessWidget {
     this.onPick,
     this.onRemove,
     this.isUploading = false,
-    super.key
+    super.key,
   });
 
   final String currentAvatarUrl;
@@ -37,27 +37,16 @@ class RoomAvatarResult extends StatelessWidget {
             child: Stack(
               alignment: .center,
               children: <Widget>[
-                MonogramUser(
-                  username: roomName,
-                  avatarUrl: currentAvatarUrl,
-                  imageBytes: pickedMedia?.bytes,
-                  size: 84
-                ),
+                MonogramUser(username: roomName, avatarUrl: currentAvatarUrl, imageBytes: pickedMedia?.bytes, size: 84),
                 if (isUploading)
                   Container(
                     width: 84,
                     height: 84,
                     decoration: const BoxDecoration(shape: .circle, color: Colors.black45),
-                    child: const Center(
-                      child: SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2.5)
-                      )
-                    )
-                  )
-              ]
-            )
+                    child: const Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2.5))),
+                  ),
+              ],
+            ),
           ),
           if (onPick != null)
             Row(
@@ -67,27 +56,27 @@ class RoomAvatarResult extends StatelessWidget {
                 OutlinedButton.icon(
                   onPressed: isUploading ? null : onPick,
                   icon: const Icon(Icons.photo_camera_outlined, size: 18),
-                  label: Text(hasAvatar ? "Changer l'image" : 'Ajouter une image')
+                  label: Text(hasAvatar ? "Changer l'image" : 'Ajouter une image'),
                 ),
                 if (hasAvatar && onRemove != null)
                   TextButton.icon(
                     onPressed: isUploading ? null : onRemove,
                     icon: Icon(Icons.delete_outline, size: 18, color: theme.colorScheme.error),
-                    label: Text('Supprimer', style: TextStyle(color: theme.colorScheme.error))
-                  )
-              ]
+                    label: Text('Supprimer', style: TextStyle(color: theme.colorScheme.error)),
+                  ),
+              ],
             ),
           Text(
             'Avatar du salon',
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: .w600, color: theme.colorScheme.onSurface)
+            style: theme.textTheme.titleMedium?.copyWith(fontWeight: .w600, color: theme.colorScheme.onSurface),
           ),
           Text(
             'Sélectionnez une image ou saisissez une URL ci-dessous',
             style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.outline),
-            textAlign: .center
-          )
-        ]
-      )
+            textAlign: .center,
+          ),
+        ],
+      ),
     );
   }
 }
