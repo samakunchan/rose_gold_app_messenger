@@ -89,23 +89,77 @@ class ChatRepositoryImpl extends ChatRepository {
     required String roomId,
     String? peerPublicKeyBase64,
   }) async {
-    // 1. Vérifier si la clé de salon est déjà en cache mémoire ou local
-    final SecretKey? localKey = await cryptoDataSource.getRoomKey(roomId: roomId);
-    if (localKey != null) {
-      unawaited(_syncMissingRoomKeys(userId: userId, roomId: roomId, roomKey: localKey));
-      return localKey;
-    }
+    await cryptoDataSource.initLocalKeys(userId: userId);
 
-    // 2. Tenter de récupérer la clé chiffrée pour cet utilisateur depuis Supabase
-    final Map<String, dynamic>? keyRow = await remoteDataSource.getRoomKeyForUser(
+    // 1. Tenter de récupérer la clé de salon la plus récente sur Supabase pour cet utilisateur
+    final Map<String, dynamic>? latestRow = await remoteDataSource.getLatestRoomKeyForUser(
       roomId: roomId,
       userId: userId,
     );
 
-    if (keyRow != null) {
-      final String encryptedKey = keyRow['encrypted_key'] as String;
-      final String nonce = keyRow['nonce'] as String;
-      final String senderId = keyRow['sender_id'] as String;
+    if (latestRow != null) {
+      final String rowFp = (latestRow['key_fingerprint'] as String?) ?? '';
+      final String? rowCreatedRaw = latestRow['created_at'] as String?;
+      final DateTime? rowCreatedAt = rowCreatedRaw != null ? DateTime.tryParse(rowCreatedRaw)?.toUtc() : null;
+      final ({DateTime? joinedAt, DateTime? updatedAt})? memberTimestamps = await remoteDataSource.getMemberTimestamps(
+        roomId: roomId,
+        userId: userId,
+      );
+      final DateTime? myJoinedAt = memberTimestamps?.joinedAt;
+      final DateTime? memberUpdatedAt = memberTimestamps?.updatedAt;
+
+      // Vérifier si la composition du salon a changé (arrivée ou départ/exclusion) depuis la création de cette clé
+      if (rowFp.isNotEmpty) {
+        final List<String> existingUserIds = await remoteDataSource.getExistingRoomKeyUserIds(
+          roomId: roomId,
+          fingerprint: rowFp,
+        );
+        final Map<String, String> allMembers = await remoteDataSource.getRoomMembersPublicKeys(roomId: roomId);
+        final bool hasNewMemberWithoutKey = allMembers.keys.any(
+          (String memberId) => !existingUserIds.contains(memberId),
+        );
+        final bool hasDepartedMemberWithKey = existingUserIds.any(
+          (String keyUserId) => !allMembers.containsKey(keyUserId),
+        );
+        final bool membershipChangedAfterKey =
+            rowCreatedAt != null &&
+            memberUpdatedAt != null &&
+            rowCreatedAt.isBefore(memberUpdatedAt.subtract(const Duration(seconds: 2)));
+        final bool keyOlderThanMyJoin =
+            rowCreatedAt != null &&
+            myJoinedAt != null &&
+            rowCreatedAt.isBefore(myJoinedAt.subtract(const Duration(seconds: 2)));
+
+        if (hasNewMemberWithoutKey || hasDepartedMemberWithKey || membershipChangedAfterKey || keyOlderThanMyJoin) {
+          // Rotation automatique pour la nouvelle époque (Backward & Forward Secrecy)
+          final SecretKey rotatedKey = await cryptoDataSource.generateAndStoreRoomKey(
+            userId: userId,
+            roomId: roomId,
+          );
+          final String rotatedFp = await cryptoDataSource.getSecretKeyFingerprint(rotatedKey);
+          await _distributeRoomKey(
+            userId: userId,
+            roomId: roomId,
+            roomKey: rotatedKey,
+            fingerprint: rotatedFp,
+          );
+          return rotatedKey;
+        }
+
+        final SecretKey? localKey = await cryptoDataSource.getRoomKey(
+          userId: userId,
+          roomId: roomId,
+          fingerprint: rowFp,
+        );
+
+        if (localKey != null) {
+          return localKey;
+        }
+      }
+
+      final String encryptedKey = latestRow['encrypted_key'] as String;
+      final String nonce = latestRow['nonce'] as String;
+      final String senderId = latestRow['sender_id'] as String;
 
       final String senderPubKey = senderId == userId
           ? await cryptoDataSource.getPublicKeyBase64(userId: userId)
@@ -119,20 +173,25 @@ class ChatRepositoryImpl extends ChatRepository {
         );
 
         final SecretKey roomKey = await cryptoDataSource.decryptRoomKey(
+          userId: userId,
           encryptedKeyBase64: encryptedKey,
           nonceBase64: nonce,
           pairwiseKey: pairwiseKey,
           roomId: roomId,
+          fingerprint: rowFp.isNotEmpty ? rowFp : null,
         );
 
-        unawaited(_syncMissingRoomKeys(userId: userId, roomId: roomId, roomKey: roomKey));
         return roomKey;
       }
     }
 
-    // 3. Aucune clé existante trouvée : générer une clé de salon et la distribuer à tous les membres
-    final SecretKey newRoomKey = await cryptoDataSource.generateAndStoreRoomKey(roomId: roomId);
-    await _distributeRoomKey(userId: userId, roomId: roomId, roomKey: newRoomKey);
+    // 2. Aucune clé existante trouvée sur le serveur pour cet utilisateur : générer une nouvelle clé de salon et la distribuer à tous les membres actuels
+    final SecretKey newRoomKey = await cryptoDataSource.generateAndStoreRoomKey(
+      userId: userId,
+      roomId: roomId,
+    );
+    final String fp = await cryptoDataSource.getSecretKeyFingerprint(newRoomKey);
+    await _distributeRoomKey(userId: userId, roomId: roomId, roomKey: newRoomKey, fingerprint: fp);
     return newRoomKey;
   }
 
@@ -140,6 +199,7 @@ class ChatRepositoryImpl extends ChatRepository {
     required String userId,
     required String roomId,
     required SecretKey roomKey,
+    required String fingerprint,
   }) async {
     try {
       final Map<String, String> membersPublicKeys = await remoteDataSource.getRoomMembersPublicKeys(roomId: roomId);
@@ -170,6 +230,7 @@ class ChatRepositoryImpl extends ChatRepository {
           'sender_id': userId,
           'encrypted_key': encrypted.encryptedKey,
           'nonce': encrypted.nonce,
+          'key_fingerprint': fingerprint,
         });
       }
 
@@ -179,49 +240,6 @@ class ChatRepositoryImpl extends ChatRepository {
     } on Exception catch (e) {
       if (kDebugMode) {
         print('Erreur _distributeRoomKey: $e');
-      }
-    }
-  }
-
-  Future<void> _syncMissingRoomKeys({
-    required String userId,
-    required String roomId,
-    required SecretKey roomKey,
-  }) async {
-    try {
-      final List<String> existingUserIds = await remoteDataSource.getExistingRoomKeyUserIds(roomId: roomId);
-      final Map<String, String> allMembers = await remoteDataSource.getRoomMembersPublicKeys(roomId: roomId);
-
-      final List<Map<String, dynamic>> missingRows = <Map<String, dynamic>>[];
-      for (final MapEntry<String, String> entry in allMembers.entries) {
-        if (!existingUserIds.contains(entry.key)) {
-          final SecretKey pairwiseKey = await cryptoDataSource.deriveSharedKey(
-            userId: userId,
-            peerPublicKeyBase64: entry.value,
-            roomId: roomId,
-          );
-
-          final ({String encryptedKey, String nonce}) encrypted = await cryptoDataSource.encryptRoomKey(
-            roomKey: roomKey,
-            pairwiseKey: pairwiseKey,
-          );
-
-          missingRows.add(<String, dynamic>{
-            'room_id': roomId,
-            'user_id': entry.key,
-            'sender_id': userId,
-            'encrypted_key': encrypted.encryptedKey,
-            'nonce': encrypted.nonce,
-          });
-        }
-      }
-
-      if (missingRows.isNotEmpty) {
-        await remoteDataSource.saveRoomKeys(roomKeys: missingRows);
-      }
-    } on Exception catch (e) {
-      if (kDebugMode) {
-        print('Erreur _syncMissingRoomKeys: $e');
       }
     }
   }
@@ -274,13 +292,19 @@ class ChatRepositoryImpl extends ChatRepository {
         secretKey: secretKey,
       );
 
+      final String roomKeyFp = await cryptoDataSource.getSecretKeyFingerprint(secretKey);
+
       final MessageModel created = await remoteDataSource.sendMessage(
         roomId: params.roomId,
         ciphertext: encrypted.ciphertext,
         nonce: encrypted.nonce,
-        fingerprint: encrypted.fingerprint,
+        fingerprint: roomKeyFp,
         mediaUrl: params.mediaUrl,
       );
+
+      final Map<String, ({String username, String? avatarUrl})> myProfileMap =
+          await remoteDataSource.getProfilesByUserIds(userIds: <String>[userId]);
+      final ({String username, String? avatarUrl})? myProfile = myProfileMap[userId];
 
       final MessageEntity entity = MessageEntity(
         id: created.id,
@@ -289,6 +313,8 @@ class ChatRepositoryImpl extends ChatRepository {
         decryptedContent: params.plainText,
         keyFingerprint: created.keyFingerprint,
         createdAt: created.createdAt,
+        senderUsername: myProfile?.username,
+        senderAvatarUrl: myProfile?.avatarUrl,
         mediaUrl: created.mediaUrl,
         attachment: attachment,
       );
@@ -354,17 +380,81 @@ class ChatRepositoryImpl extends ChatRepository {
         final String selfKey = await cryptoDataSource.getPublicKeyBase64(userId: userId);
         candidatePeerKeys.add(selfKey);
 
-        // 3. Obtenir la clé de salon (Option 1 - Clé partagée E2EE)
-        SecretKey? roomKey;
+        // 3. Obtenir toutes les clés de salon connues ou disponibles pour cet utilisateur
+        final Map<String, SecretKey> roomKeysByFingerprint = <String, SecretKey>{};
+        SecretKey? latestRoomKey;
         try {
-          roomKey = await _getOrEnsureRoomKey(
-            userId: userId,
+          final List<Map<String, dynamic>> userRoomKeyRows = await remoteDataSource.getRoomKeysForUser(
             roomId: params.roomId,
-            peerPublicKeyBase64: params.peerPublicKeyBase64,
+            userId: userId,
           );
+
+          for (final Map<String, dynamic> row in userRoomKeyRows) {
+            try {
+              final String? rowFp = row['key_fingerprint'] as String?;
+              SecretKey? k;
+
+              if (rowFp != null && rowFp.isNotEmpty) {
+                k = await cryptoDataSource.getRoomKey(
+                  userId: userId,
+                  roomId: params.roomId,
+                  fingerprint: rowFp,
+                );
+              }
+
+              if (k == null) {
+                final String encryptedKey = row['encrypted_key'] as String;
+                final String nonce = row['nonce'] as String;
+                final String senderId = row['sender_id'] as String;
+
+                final String senderPubKey = senderId == userId
+                    ? await cryptoDataSource.getPublicKeyBase64(userId: userId)
+                    : (await remoteDataSource.getPeerPublicKey(userId: senderId))?.publicKey ?? '';
+
+                if (senderPubKey.isNotEmpty) {
+                  final SecretKey pairwiseKey = await cryptoDataSource.deriveSharedKey(
+                    userId: userId,
+                    peerPublicKeyBase64: senderPubKey,
+                    roomId: params.roomId,
+                  );
+
+                  k = await cryptoDataSource.decryptRoomKey(
+                    userId: userId,
+                    encryptedKeyBase64: encryptedKey,
+                    nonceBase64: nonce,
+                    pairwiseKey: pairwiseKey,
+                    roomId: params.roomId,
+                    fingerprint: rowFp,
+                  );
+                }
+              }
+
+              if (k != null) {
+                final String fp = (rowFp != null && rowFp.isNotEmpty)
+                    ? rowFp
+                    : await cryptoDataSource.getSecretKeyFingerprint(k);
+                roomKeysByFingerprint[fp] = k;
+                latestRoomKey = k;
+              }
+            } on Exception catch (e) {
+              if (kDebugMode) {
+                print('Erreur déchiffrement d‘une clé de salon: $e');
+              }
+            }
+          }
+
+          if (latestRoomKey == null) {
+            latestRoomKey = await _getOrEnsureRoomKey(
+              userId: userId,
+              roomId: params.roomId,
+              peerPublicKeyBase64: params.peerPublicKeyBase64,
+            );
+            final String fp = await cryptoDataSource.getSecretKeyFingerprint(latestRoomKey);
+            roomKeysByFingerprint[fp] = latestRoomKey;
+          }
         } on Exception catch (e) {
           if (kDebugMode) {
-            print('Erreur récupération roomKey: $e');
+            print('Erreur récupération roomKeys: $e');
           }
         }
 
@@ -379,36 +469,81 @@ class ChatRepositoryImpl extends ChatRepository {
           candidateSecretKeys.add(sk);
         }
 
-        // 5. Déchiffrer chaque message
+        // 5. Récupérer les profils (username + avatar_url) de tous les expéditeurs
+        final List<String> allSenderIds = models.map((MessageModel m) => m.senderId).toSet().toList();
+        final Map<String, ({String username, String? avatarUrl})> profilesByUserId =
+            await remoteDataSource.getProfilesByUserIds(userIds: allSenderIds);
+
+        // 6. Déchiffrer uniquement les messages appartenant aux époques où l'utilisateur était présent
         final List<MessageEntity> entities = <MessageEntity>[];
         final List<MessageEntity> newlyDecrypted = <MessageEntity>[];
 
         for (final MessageModel model in models) {
+          // Ignorer tout message d'une époque pour laquelle l'utilisateur ne possède pas la clé
+          final bool hasEpochKey =
+              roomKeysByFingerprint.containsKey(model.keyFingerprint) || model.senderId == userId;
+          if (!hasEpochKey) {
+            continue;
+          }
+
+          final ({String username, String? avatarUrl})? senderProfile = profilesByUserId[model.senderId];
+
           // Utiliser le cache local s'il contient déjà le texte en clair
           if (cachedMap.containsKey(model.id)) {
             final MessageEntity cachedEntity = cachedMap[model.id]!;
             if (!cachedEntity.decryptedContent.contains('🔒')) {
-              entities.add(cachedEntity);
+              entities.add(
+                MessageEntity(
+                  id: cachedEntity.id,
+                  roomId: cachedEntity.roomId,
+                  senderId: cachedEntity.senderId,
+                  decryptedContent: cachedEntity.decryptedContent,
+                  keyFingerprint: cachedEntity.keyFingerprint,
+                  createdAt: cachedEntity.createdAt,
+                  senderUsername: senderProfile?.username ?? cachedEntity.senderUsername,
+                  senderAvatarUrl: senderProfile?.avatarUrl ?? cachedEntity.senderAvatarUrl,
+                  mediaUrl: cachedEntity.mediaUrl,
+                  attachment: cachedEntity.attachment,
+                ),
+              );
               continue;
             }
           }
 
           String? decryptedPayload;
 
-          // Essai 1 : Déchiffrement direct avec la clé de salon (Room Key)
-          if (roomKey != null) {
+          // Essai 1 : Déchiffrement direct par correspondance exacte d'empreinte de clé
+          final SecretKey? matchingRoomKey = roomKeysByFingerprint[model.keyFingerprint];
+          if (matchingRoomKey != null) {
             try {
               decryptedPayload = await cryptoDataSource.decrypt(
                 ciphertextBase64: model.ciphertext,
                 nonceBase64: model.nonce,
-                secretKey: roomKey,
+                secretKey: matchingRoomKey,
               );
             } on Exception {
-              // Si échec (ex: ancien message d'avant la migration), tenter les clés bilatérales ci-dessous
+              // Échec si altération ou clé incorrecte
             }
           }
 
-          // Essai 2 : Rétrocompatibilité avec les clés bilatérales candidates
+          // Essai 2 : Déchiffrement avec toutes les autres clés de salon connues
+          if (decryptedPayload == null) {
+            for (final SecretKey rk in roomKeysByFingerprint.values) {
+              if (rk == matchingRoomKey) continue;
+              try {
+                decryptedPayload = await cryptoDataSource.decrypt(
+                  ciphertextBase64: model.ciphertext,
+                  nonceBase64: model.nonce,
+                  secretKey: rk,
+                );
+                break;
+              } on Exception {
+                // Tenter la clé suivante
+              }
+            }
+          }
+
+          // Essai 3 : Rétrocompatibilité avec les clés bilatérales candidates
           if (decryptedPayload == null) {
             for (final SecretKey sk in candidateSecretKeys) {
               try {
@@ -424,24 +559,25 @@ class ChatRepositoryImpl extends ChatRepository {
             }
           }
 
-          final bool isSuccess = decryptedPayload != null;
-          String finalText = isSuccess ? decryptedPayload : '🔒 [Message chiffré indéchiffrable]';
+          if (decryptedPayload == null) {
+            continue;
+          }
+
+          String finalText = decryptedPayload;
           EncryptedMediaAttachment? attachment;
 
-          if (isSuccess) {
-            try {
-              final dynamic decoded = jsonDecode(decryptedPayload);
-              if (decoded is Map<String, dynamic> && decoded.containsKey('attachment')) {
-                final dynamic textVal = decoded['text'];
-                finalText = textVal is String ? textVal : '';
-                final dynamic rawAttachment = decoded['attachment'];
-                if (rawAttachment is Map<String, dynamic>) {
-                  attachment = EncryptedMediaAttachment.fromJson(rawAttachment);
-                }
+          try {
+            final dynamic decoded = jsonDecode(decryptedPayload);
+            if (decoded is Map<String, dynamic> && decoded.containsKey('attachment')) {
+              final dynamic textVal = decoded['text'];
+              finalText = textVal is String ? textVal : '';
+              final dynamic rawAttachment = decoded['attachment'];
+              if (rawAttachment is Map<String, dynamic>) {
+                attachment = EncryptedMediaAttachment.fromJson(rawAttachment);
               }
-            } on Exception {
-              // Format de message texte brut classique (rétro-compatible)
             }
+          } on Exception {
+            // Format de message texte brut classique (rétro-compatible)
           }
 
           final MessageEntity entity = MessageEntity(
@@ -451,15 +587,14 @@ class ChatRepositoryImpl extends ChatRepository {
             decryptedContent: finalText,
             keyFingerprint: model.keyFingerprint,
             createdAt: model.createdAt,
+            senderUsername: senderProfile?.username,
+            senderAvatarUrl: senderProfile?.avatarUrl,
             mediaUrl: model.mediaUrl,
             attachment: attachment,
           );
 
           entities.add(entity);
-
-          if (isSuccess) {
-            newlyDecrypted.add(entity);
-          }
+          newlyDecrypted.add(entity);
         }
 
         // Sauvegarder uniquement les messages déchiffrés avec succès dans Drift
@@ -564,6 +699,76 @@ class ChatRepositoryImpl extends ChatRepository {
         print('Erreur regenerateRandomPassphrase: $e\n$stack');
       }
       return const Left<Failure, String>(CryptoFailure());
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> rotateRoomKeyForNewMember({
+    required String roomId,
+    required String newMemberId,
+  }) async {
+    try {
+      final String userId = _currentUserId;
+      if (userId.isEmpty) {
+        return const Right<Failure, void>(null);
+      }
+
+      await cryptoDataSource.initLocalKeys(userId: userId);
+
+      // 1. Générer une nouvelle clé de salon pour la nouvelle époque
+      final SecretKey newKey = await cryptoDataSource.generateAndStoreRoomKey(
+        userId: userId,
+        roomId: roomId,
+      );
+      final String fingerprint = await cryptoDataSource.getSecretKeyFingerprint(newKey);
+
+      // 2. Récupérer les clés publiques de tous les membres actuels + du nouveau membre invité
+      final Map<String, String> members = await remoteDataSource.getRoomMembersPublicKeys(roomId: roomId);
+      if (!members.containsKey(newMemberId)) {
+        final UserPublicKeyModel? newMemberKeyModel = await remoteDataSource.getPeerPublicKey(userId: newMemberId);
+        if (newMemberKeyModel != null && newMemberKeyModel.publicKey.isNotEmpty) {
+          members[newMemberId] = newMemberKeyModel.publicKey;
+        }
+      }
+      if (!members.containsKey(userId)) {
+        final String myKey = await cryptoDataSource.getPublicKeyBase64(userId: userId);
+        members[userId] = myKey;
+      }
+
+      // 3. Chiffrer la nouvelle clé de salon pour chacun des membres
+      final List<Map<String, dynamic>> rowsToUpsert = <Map<String, dynamic>>[];
+      for (final MapEntry<String, String> entry in members.entries) {
+        final SecretKey pairwiseKey = await cryptoDataSource.deriveSharedKey(
+          userId: userId,
+          peerPublicKeyBase64: entry.value,
+          roomId: roomId,
+        );
+
+        final ({String encryptedKey, String nonce}) encrypted = await cryptoDataSource.encryptRoomKey(
+          roomKey: newKey,
+          pairwiseKey: pairwiseKey,
+        );
+
+        rowsToUpsert.add(<String, dynamic>{
+          'room_id': roomId,
+          'user_id': entry.key,
+          'sender_id': userId,
+          'encrypted_key': encrypted.encryptedKey,
+          'nonce': encrypted.nonce,
+          'key_fingerprint': fingerprint,
+        });
+      }
+
+      if (rowsToUpsert.isNotEmpty) {
+        await remoteDataSource.saveRoomKeys(roomKeys: rowsToUpsert);
+      }
+
+      return const Right<Failure, void>(null);
+    } on Exception catch (e, stack) {
+      if (kDebugMode) {
+        print('Erreur rotateRoomKeyForNewMember: $e\n$stack');
+      }
+      return const Left<Failure, void>(CryptoFailure());
     }
   }
 }

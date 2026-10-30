@@ -17,4 +17,8 @@ abstract class ChatRepository {
   Future<Either<Failure, void>> updatePassphrase({required String newPassphrase});
   Future<Either<Failure, String>> regenerateRandomPassphrase();
   Future<Either<Failure, Uint8List>> downloadAndDecryptMedia({required EncryptedMediaAttachment attachment});
+  Future<Either<Failure, void>> rotateRoomKeyForNewMember({
+    required String roomId,
+    required String newMemberId,
+  });
 }

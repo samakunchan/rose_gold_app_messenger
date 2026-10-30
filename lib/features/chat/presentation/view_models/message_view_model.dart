@@ -14,6 +14,15 @@ class MessageViewModel {
   String get id => entity.id;
   String get roomId => entity.roomId;
   String get senderId => entity.senderId;
+  String get senderUsername {
+    final String? name = entity.senderUsername?.trim();
+    if (name != null && name.isNotEmpty) {
+      return isMe ? 'Moi' : name;
+    }
+    return isMe ? 'Moi' : 'Utilisateur';
+  }
+
+  String? get senderAvatarUrl => entity.senderAvatarUrl;
   String get content => entity.decryptedContent;
   String? get mediaUrl => entity.mediaUrl;
   EncryptedMediaAttachment? get attachment => entity.attachment;

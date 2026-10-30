@@ -9,6 +9,7 @@ import 'package:rose_gold_app_messenger/features/chat/domain/usecases/get_chat_m
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/get_passphrase_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/initialize_e2ee_keys_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/regenerate_passphrase_use_case.dart';
+import 'package:rose_gold_app_messenger/features/chat/domain/usecases/rotate_room_key_for_new_member_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/search_messages_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/send_encrypted_message_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/update_passphrase_use_case.dart';
@@ -62,6 +63,9 @@ void initChatDI() {
     )
     ..registerLazySingleton<DownloadAndDecryptMediaUseCase>(
       () => DownloadAndDecryptMediaUseCase(repository: kGetIt<ChatRepository>()),
+    )
+    ..registerLazySingleton<RotateRoomKeyForNewMemberUseCase>(
+      () => RotateRoomKeyForNewMemberUseCase(chatRepository: kGetIt<ChatRepository>()),
     )
     /// Signals
     ..registerLazySingleton<ChatSignals>(

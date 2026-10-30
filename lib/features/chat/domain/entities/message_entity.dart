@@ -9,6 +9,8 @@ class MessageEntity extends Equatable {
     required this.decryptedContent,
     required this.keyFingerprint,
     required this.createdAt,
+    this.senderUsername,
+    this.senderAvatarUrl,
     this.mediaUrl,
     this.attachment,
   });
@@ -19,6 +21,8 @@ class MessageEntity extends Equatable {
   final String decryptedContent;
   final String keyFingerprint;
   final String createdAt;
+  final String? senderUsername;
+  final String? senderAvatarUrl;
   final String? mediaUrl;
   final EncryptedMediaAttachment? attachment;
 
@@ -30,6 +34,8 @@ class MessageEntity extends Equatable {
     decryptedContent,
     keyFingerprint,
     createdAt,
+    senderUsername,
+    senderAvatarUrl,
     mediaUrl,
     attachment,
   ];
