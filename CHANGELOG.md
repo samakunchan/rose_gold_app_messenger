@@ -1,5 +1,23 @@
 # CHANGELOG rose_gold_app_messenger
 
+## 🚀 0.10.0 - 30/10/2026
+
+### Added
+
+- Added export data in json format or file.
+- Added clear cache datas.
+
+### Changed
+
+- Update settings page and added the two latest features.
+
+### Fixed
+
+- Fix lint as usual.
+
+---
+
+
 ## 🚀 0.9.0 - 29/10/2026
 
 ### Added

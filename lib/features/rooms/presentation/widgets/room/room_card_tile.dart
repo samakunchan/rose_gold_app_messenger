@@ -47,11 +47,7 @@ class RoomCardTile extends StatelessWidget {
             spacing: AppSpacing.spaceMd.value,
             children: <Widget>[
               // Médaillon élégant du salon avec dégradé Rose Gold
-              MonogramUser(
-                username: room.name,
-                avatarUrl: room.avatarUrl,
-                size: 50
-              ),
+              MonogramUser(username: room.name, avatarUrl: room.avatarUrl, size: 50),
 
               // Informations textuelles du salon
               Expanded(
