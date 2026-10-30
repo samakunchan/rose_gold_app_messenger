@@ -259,6 +259,12 @@ class ChatSignals {
     isSearching.value = false;
   }
 
+  int clearMediaCache() {
+    final int count = _decryptedMediaCache.length;
+    _decryptedMediaCache.clear();
+    return count;
+  }
+
   Future<void> dispose() async {
     await _messagesSubscription?.cancel();
     _messagesSubscription = null;

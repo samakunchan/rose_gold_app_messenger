@@ -90,22 +90,15 @@ class _EditRoomOwnerFormState extends State<EditRoomOwnerForm> {
         bytes: _pickedAvatarMedia!.bytes,
         fileExtension: _pickedAvatarMedia!.fileExtension,
         mimeType: _pickedAvatarMedia!.mimeType,
-        customPrefix: 'room_${widget.roomId}'
+        customPrefix: 'room_${widget.roomId}',
       );
       setState(() => _isUploading = false);
 
-      final (Failure? failure, String? uploadedUrl) = uploadResult.fold(
-        ifLeft: (Failure f) => (f, null),
-        ifRight: (String url) => (null, url)
-      );
+      final (Failure? failure, String? uploadedUrl) = uploadResult.fold(ifLeft: (Failure f) => (f, null), ifRight: (String url) => (null, url));
 
       if (failure != null || uploadedUrl == null) {
         if (mounted) {
-          showErrorSheet(
-            context: context,
-            title: 'Erreur',
-            message: failure?.message ?? "Échec du téléversement de l'avatar du salon"
-          );
+          showErrorSheet(context: context, title: 'Erreur', message: failure?.message ?? "Échec du téléversement de l'avatar du salon");
         }
         return;
       }
@@ -118,25 +111,16 @@ class _EditRoomOwnerFormState extends State<EditRoomOwnerForm> {
       roomId: widget.roomId,
       name: name,
       description: description.isNotEmpty ? description : null,
-      avatarUrl: avatarUrl?.isNotEmpty == true ? avatarUrl : null
+      avatarUrl: avatarUrl?.isNotEmpty == true ? avatarUrl : null,
     );
 
     if (!mounted) return;
 
     if (roomsSignals.isRoomUpdated.value) {
       Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Salon "$name" mis à jour avec succès !'),
-          behavior: .floating
-        )
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Salon "$name" mis à jour avec succès !'), behavior: .floating));
     } else {
-      showErrorSheet(
-        context: context,
-        title: 'Erreur',
-        message: 'Impossible de modifier le salon. Veuillez réessayer.'
-      );
+      showErrorSheet(context: context, title: 'Erreur', message: 'Impossible de modifier le salon. Veuillez réessayer.');
     }
   }
 
@@ -196,9 +180,7 @@ class _EditRoomOwnerFormState extends State<EditRoomOwnerForm> {
                 pickedMedia: _pickedAvatarMedia,
                 isUploading: _isUploading,
                 onPick: _handlePickAvatar,
-                onRemove: (_avatarUrlController.text.isNotEmpty || _pickedAvatarMedia != null)
-                    ? _handleRemoveAvatar
-                    : null
+                onRemove: (_avatarUrlController.text.isNotEmpty || _pickedAvatarMedia != null) ? _handleRemoveAvatar : null,
               ),
 
               // Champs de saisie

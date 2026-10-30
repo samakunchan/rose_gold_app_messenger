@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:material_ui/material_ui.dart';
 import 'package:rose_gold_app_messenger/features/chat/presentation/widgets/e2ee_passphrase_bottom_sheet.dart';
 import 'package:rose_gold_app_messenger/features/moderation/presentation/screens/blocked_users_screen.dart';
+import 'package:rose_gold_app_messenger/features/settings/presentation/widgets/modals/clear_cache_dialog.dart';
+import 'package:rose_gold_app_messenger/features/settings/presentation/widgets/modals/data_export_bottom_sheet.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 class PrivacySettingsSection extends AbstractSettingsSection {
@@ -34,7 +36,9 @@ class PrivacySettingsSection extends AbstractSettingsSection {
           leading: const Icon(Icons.download_outlined),
           title: const Text('Exporter mes données'),
           description: const Text('Télécharger une copie de vos données personnelles'),
-          onPressed: (_) {},
+          onPressed: (BuildContext tileContext) {
+            unawaited(DataExportBottomSheet.show(tileContext));
+          },
         ),
         SettingsTile.switchTile(
           leading: const Icon(Icons.analytics_outlined),
@@ -47,7 +51,9 @@ class PrivacySettingsSection extends AbstractSettingsSection {
           leading: const Icon(Icons.cleaning_services_outlined),
           title: const Text('Vider le cache local'),
           description: const Text('Effacer les messages et médias stockés sur cet appareil'),
-          onPressed: (_) {},
+          onPressed: (BuildContext tileContext) {
+            unawaited(ClearCacheDialog.show(tileContext));
+          },
         ),
       ],
     );
