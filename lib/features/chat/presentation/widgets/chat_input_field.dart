@@ -56,6 +56,7 @@ class _ChatInputFieldState extends State<ChatInputField> {
     }
 
     _controller.clear();
+    unawaited(chatSignals.setTyping(value: false));
     _focusNode.requestFocus();
 
     final bool success = await chatSignals.sendMessage(
@@ -81,6 +82,7 @@ class _ChatInputFieldState extends State<ChatInputField> {
     final ChatSignals chatSignals = kGetIt<ChatSignals>();
     final String text = _controller.text.trim();
     _controller.clear();
+    unawaited(chatSignals.setTyping(value: false));
 
     final bool success = await chatSignals.sendMessage(
       roomId: widget.roomId,
@@ -146,6 +148,7 @@ class _ChatInputFieldState extends State<ChatInputField> {
                       fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                       contentPadding: .symmetric(horizontal: AppSpacing.spaceMd.value, vertical: AppSpacing.spaceSm.value),
                     ),
+                    onChanged: chatSignals.onInputTextChanged,
                     onSubmitted: (_) => unawaited(_handleSend()),
                   ),
                 ),

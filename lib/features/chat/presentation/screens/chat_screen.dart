@@ -7,6 +7,7 @@ import 'package:rose_gold_app_messenger/features/chat/presentation/widgets/chat_
 import 'package:rose_gold_app_messenger/features/chat/presentation/widgets/chat_input_field.dart';
 import 'package:rose_gold_app_messenger/features/chat/presentation/widgets/chat_messages_list.dart';
 import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
+import 'package:rose_gold_app_messenger/themes/themes_all_export.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -67,6 +68,43 @@ class _ChatScreenState extends State<ChatScreen> {
                   return ChatMessagesList(messages: messages, scrollController: _scrollController);
                 },
               ),
+            ),
+            SignalBuilder(
+              builder: (_) {
+                final String? typingText = _chatSignals.typingIndicatorText;
+                if (typingText == null) {
+                  return const SizedBox.shrink();
+                }
+                final ThemeData theme = Theme.of(context);
+                return Container(
+                  width: double.infinity,
+                  padding: .symmetric(
+                    horizontal: AppSpacing.spaceMd.value,
+                    vertical: AppSpacing.spaceXs.value,
+                  ),
+                  child: Row(
+                    spacing: AppSpacing.spaceXs.value,
+                    children: <Widget>[
+                      Icon(
+                        Icons.edit_note_rounded,
+                        size: 16,
+                        color: theme.colorScheme.primary,
+                      ),
+                      Expanded(
+                        child: Text(
+                          typingText,
+                          maxLines: 1,
+                          overflow: .ellipsis,
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontStyle: .italic,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
             ChatInputField(
               roomId: widget.roomId,

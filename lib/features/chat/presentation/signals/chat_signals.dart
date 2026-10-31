@@ -41,18 +41,42 @@ class ChatSignals {
   final DownloadAndDecryptMediaUseCase downloadAndDecryptMediaUseCase;
   final SupabaseClient supabaseClient;
 
+  static const Duration _typingMaxDuration = Duration(minutes: 1);
+
   final Signal<bool> isLoading = .new(false);
   final Signal<bool> isSending = .new(false);
   final Signal<bool> isSearching = .new(false);
   final Signal<bool> isPassphraseLoading = .new(false);
+  final Signal<bool> isTyping = .new(false);
   final Signal<String?> currentRoomId = .new(null);
   final Signal<String?> currentPassphrase = signal<String?>(null);
   final Signal<List<MessageViewModel>> messages = signal<List<MessageViewModel>>(<MessageViewModel>[]);
   final Signal<List<MessageViewModel>> searchResults = signal<List<MessageViewModel>>(<MessageViewModel>[]);
+  final Signal<List<String>> typingUsernames = signal<List<String>>(<String>[]);
 
   final Map<String, Uint8List> _decryptedMediaCache = <String, Uint8List>{};
 
   StreamSubscription<Either<Failure, List<MessageEntity>>>? _messagesSubscription;
+  RealtimeChannel? _typingChannel;
+  Timer? _typingResetTimer;
+  Timer? _typingExpiryCleanupTimer;
+  String? _cachedCurrentUsername;
+  String? _cachedCurrentUserId;
+
+  String? get typingIndicatorText {
+    final List<String> names = typingUsernames.value;
+    if (names.isEmpty) {
+      return null;
+    }
+    if (names.length == 1) {
+      return '${names.first} est en train d’écrire...';
+    }
+    if (names.length == 2) {
+      return '${names[0]} et ${names[1]} sont en train d’écrire...';
+    }
+    final String others = names.sublist(0, names.length - 1).join(', ');
+    return '$others et ${names.last} sont en train d’écrire...';
+  }
 
   Future<void> initializeKeys() async {
     final Either<Failure, void> result = await initKeysUseCase();
@@ -133,6 +157,7 @@ class ChatSignals {
     isLoading.value = true;
 
     final String currentUserId = supabaseClient.auth.currentUser?.id ?? '';
+    unawaited(_subscribeToTypingChannel(roomId: roomId));
 
     _messagesSubscription =
         getMessagesStreamUseCase(
@@ -163,6 +188,181 @@ class ChatSignals {
         });
   }
 
+  Future<void> _subscribeToTypingChannel({required String roomId}) async {
+    await _leaveTypingChannel();
+    unawaited(_resolveCurrentUsername());
+
+    final RealtimeChannel channel = supabaseClient.channel('room_typing:$roomId');
+    _typingChannel = channel;
+
+    channel
+        .onPresenceSync((_) {
+          _syncTypingUsers();
+        })
+        .subscribe();
+  }
+
+  void _syncTypingUsers() {
+    _typingExpiryCleanupTimer?.cancel();
+    _typingExpiryCleanupTimer = null;
+
+    final RealtimeChannel? channel = _typingChannel;
+    if (channel == null) {
+      typingUsernames.value = <String>[];
+      return;
+    }
+
+    final String currentUserId = supabaseClient.auth.currentUser?.id ?? '';
+    final DateTime now = DateTime.now().toUtc();
+    final List<SinglePresenceState> states = channel.presenceState();
+
+    final Map<String, String> activeByUserId = <String, String>{};
+    Duration? shortestRemaining;
+
+    for (final SinglePresenceState state in states) {
+      for (final Presence presence in state.presences) {
+        final Map<String, dynamic> payload = presence.payload;
+        final String? userId = payload['user_id'] as String?;
+        final bool typing = payload['is_typing'] == true;
+        if (userId == null || userId.isEmpty || userId == currentUserId || !typing) {
+          continue;
+        }
+
+        final String? typedAtRaw = payload['typed_at'] as String?;
+        final DateTime? typedAt = typedAtRaw != null ? DateTime.tryParse(typedAtRaw)?.toUtc() : null;
+        if (typedAt != null) {
+          final Duration elapsed = now.difference(typedAt);
+          if (elapsed >= _typingMaxDuration) {
+            continue;
+          }
+          final Duration remaining = _typingMaxDuration - elapsed;
+          if (shortestRemaining == null || remaining < shortestRemaining) {
+            shortestRemaining = remaining;
+          }
+        }
+
+        final String rawName = (payload['username'] as String? ?? '').trim();
+        activeByUserId[userId] = rawName.isNotEmpty ? rawName : 'Utilisateur';
+      }
+    }
+
+    typingUsernames.value = activeByUserId.values.toList();
+
+    if (shortestRemaining != null) {
+      _typingExpiryCleanupTimer = Timer(shortestRemaining + const Duration(milliseconds: 250), _syncTypingUsers);
+    }
+  }
+
+  Future<String> _resolveCurrentUsername() async {
+    final User? user = supabaseClient.auth.currentUser;
+    if (user == null) {
+      return 'Utilisateur';
+    }
+    if (_cachedCurrentUserId == user.id && _cachedCurrentUsername != null) {
+      return _cachedCurrentUsername!;
+    }
+    try {
+      final PostgrestMap? row = await supabaseClient
+          .from('profiles')
+          .select('username, user_tag')
+          .eq('id', user.id)
+          .maybeSingle();
+      final String? dbUsername = (row?['username'] as String?)?.trim();
+      final String? dbTag = (row?['user_tag'] as String?)?.trim();
+      final String? metaUsername = (user.userMetadata?['username'] as String?)?.trim();
+      final String? metaTag = (user.userMetadata?['user_tag'] as String?)?.trim();
+
+      final String resolved = (dbUsername != null && dbUsername.isNotEmpty)
+          ? dbUsername
+          : (metaUsername != null && metaUsername.isNotEmpty)
+          ? metaUsername
+          : (dbTag != null && dbTag.isNotEmpty)
+          ? dbTag
+          : (metaTag != null && metaTag.isNotEmpty)
+          ? metaTag
+          : 'Utilisateur';
+
+      _cachedCurrentUserId = user.id;
+      _cachedCurrentUsername = resolved;
+      return resolved;
+    } on Exception catch (_) {
+      final String fallback = (user.userMetadata?['username'] as String?)?.trim() ?? 'Utilisateur';
+      return fallback.isNotEmpty ? fallback : 'Utilisateur';
+    }
+  }
+
+  void onInputTextChanged(String text) {
+    if (text.trim().isEmpty) {
+      if (isTyping.value) {
+        unawaited(setTyping(value: false));
+      }
+      return;
+    }
+
+    if (!isTyping.value) {
+      unawaited(setTyping(value: true));
+    }
+  }
+
+  Future<void> setTyping({required bool value}) async {
+    _typingResetTimer?.cancel();
+    _typingResetTimer = null;
+
+    if (!value) {
+      if (!isTyping.value) {
+        return;
+      }
+      isTyping.value = false;
+      try {
+        await _typingChannel?.untrack();
+      } on Exception catch (_) {}
+      return;
+    }
+
+    isTyping.value = true;
+    _typingResetTimer = Timer(_typingMaxDuration, () {
+      unawaited(setTyping(value: false));
+    });
+
+    final String userId = supabaseClient.auth.currentUser?.id ?? '';
+    if (userId.isEmpty || _typingChannel == null) {
+      return;
+    }
+
+    final String username = await _resolveCurrentUsername();
+    if (!isTyping.value || _typingChannel == null) {
+      return;
+    }
+
+    try {
+      await _typingChannel!.track(<String, dynamic>{
+        'user_id': userId,
+        'username': username,
+        'is_typing': true,
+        'typed_at': DateTime.now().toUtc().toIso8601String(),
+      });
+    } on Exception catch (_) {}
+  }
+
+  Future<void> _leaveTypingChannel() async {
+    _typingResetTimer?.cancel();
+    _typingResetTimer = null;
+    _typingExpiryCleanupTimer?.cancel();
+    _typingExpiryCleanupTimer = null;
+    isTyping.value = false;
+    typingUsernames.value = <String>[];
+
+    final RealtimeChannel? channel = _typingChannel;
+    _typingChannel = null;
+    if (channel != null) {
+      try {
+        await channel.untrack();
+        await channel.unsubscribe();
+        await supabaseClient.removeChannel(channel);
+      } on Exception catch (_) {}
+    }
+  }
+
   Future<bool> sendMessage({
     required String roomId,
     String plainText = '',
@@ -177,6 +377,7 @@ class ChatSignals {
       return false;
     }
 
+    unawaited(setTyping(value: false));
     isSending.value = true;
     final Either<Failure, MessageEntity> result = await sendMessageUseCase(
       SendEncryptedMessageParams(
@@ -266,6 +467,7 @@ class ChatSignals {
   }
 
   Future<void> dispose() async {
+    await _leaveTypingChannel();
     await _messagesSubscription?.cancel();
     _messagesSubscription = null;
     currentRoomId.value = null;
