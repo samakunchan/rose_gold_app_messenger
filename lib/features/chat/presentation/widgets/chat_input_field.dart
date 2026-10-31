@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:rose_gold_app_messenger/features/chat/presentation/signals/chat_signals.dart';
 import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
@@ -24,21 +27,36 @@ class ChatInputField extends StatefulWidget {
 
 class _ChatInputFieldState extends State<ChatInputField> {
   final TextEditingController _controller = TextEditingController();
+  late final FocusNode _focusNode = FocusNode(onKeyEvent: _handleKeyEvent);
+
+  KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is KeyDownEvent && (event.logicalKey == .enter || event.logicalKey == .numpadEnter) && !HardwareKeyboard.instance.isShiftPressed) {
+      unawaited(_handleSend());
+      return .handled;
+    }
+    return .ignored;
+  }
 
   @override
   void dispose() {
+    _focusNode.dispose();
     _controller.dispose();
     super.dispose();
   }
 
   Future<void> _handleSend() async {
+    final ChatSignals chatSignals = kGetIt<ChatSignals>();
+    if (chatSignals.isSending.value) {
+      return;
+    }
+
     final String text = _controller.text.trim();
     if (text.isEmpty) {
       return;
     }
 
-    final ChatSignals chatSignals = kGetIt<ChatSignals>();
     _controller.clear();
+    _focusNode.requestFocus();
 
     final bool success = await chatSignals.sendMessage(
       roomId: widget.roomId,
@@ -104,6 +122,7 @@ class _ChatInputFieldState extends State<ChatInputField> {
           child: SafeArea(
             top: false,
             child: Row(
+              spacing: AppSpacing.spaceSm.value,
               children: <Widget>[
                 IconButton(
                   onPressed: isSending ? null : _handlePickMedia,
@@ -113,7 +132,9 @@ class _ChatInputFieldState extends State<ChatInputField> {
                 Expanded(
                   child: TextField(
                     controller: _controller,
+                    focusNode: _focusNode,
                     textCapitalization: .sentences,
+                    textInputAction: .send,
                     maxLines: 4,
                     minLines: 1,
                     keyboardType: .multiline,
@@ -125,10 +146,9 @@ class _ChatInputFieldState extends State<ChatInputField> {
                       fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                       contentPadding: .symmetric(horizontal: AppSpacing.spaceMd.value, vertical: AppSpacing.spaceSm.value),
                     ),
-                    onSubmitted: (_) => _handleSend(),
+                    onSubmitted: (_) => unawaited(_handleSend()),
                   ),
                 ),
-                const SizedBox(width: 8),
                 IconButton.filled(
                   onPressed: isSending ? null : _handleSend,
                   icon: isSending
