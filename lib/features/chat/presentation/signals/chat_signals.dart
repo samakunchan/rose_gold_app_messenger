@@ -53,15 +53,115 @@ class ChatSignals {
   final Signal<List<MessageViewModel>> messages = signal<List<MessageViewModel>>(<MessageViewModel>[]);
   final Signal<List<MessageViewModel>> searchResults = signal<List<MessageViewModel>>(<MessageViewModel>[]);
   final Signal<List<String>> typingUsernames = signal<List<String>>(<String>[]);
+  final Signal<Map<String, int>> unreadCountsByRoomId = signal<Map<String, int>>(<String, int>{});
 
   final Map<String, Uint8List> _decryptedMediaCache = <String, Uint8List>{};
+  final Set<String> _locallyReadMessageIds = <String>{};
+  final Set<String> _baselineSeenMessageIds = <String>{};
+  bool _hasCapturedBaselineWithoutReadBy = false;
 
   StreamSubscription<Either<Failure, List<MessageEntity>>>? _messagesSubscription;
+  StreamSubscription<List<Map<String, dynamic>>>? _unreadMessagesSubscription;
+  String? _unreadListenerUserId;
   RealtimeChannel? _typingChannel;
   Timer? _typingResetTimer;
   Timer? _typingExpiryCleanupTimer;
   String? _cachedCurrentUsername;
   String? _cachedCurrentUserId;
+
+  int getUnreadCountForRoom(String roomId) => unreadCountsByRoomId.value[roomId] ?? 0;
+
+  void startListeningToUnreadMessages() {
+    final String currentUserId = supabaseClient.auth.currentUser?.id ?? '';
+    if (currentUserId.isEmpty) {
+      return;
+    }
+    if (_unreadMessagesSubscription != null && _unreadListenerUserId == currentUserId) {
+      return;
+    }
+
+    unawaited(_unreadMessagesSubscription?.cancel());
+    _unreadListenerUserId = currentUserId;
+    _hasCapturedBaselineWithoutReadBy = false;
+    _baselineSeenMessageIds.clear();
+
+    _unreadMessagesSubscription = supabaseClient
+        .from('messages')
+        .stream(primaryKey: <String>['id'])
+        .listen(
+          (List<Map<String, dynamic>> rows) {
+            final String activeUserId = supabaseClient.auth.currentUser?.id ?? '';
+            if (activeUserId.isEmpty) {
+              return;
+            }
+
+            final String? openRoomId = currentRoomId.value;
+            final Map<String, int> counts = <String, int>{};
+
+            final bool schemaHasReadBy = rows.isEmpty || rows.first.containsKey('read_by');
+            if (!schemaHasReadBy && !_hasCapturedBaselineWithoutReadBy) {
+              for (final Map<String, dynamic> row in rows) {
+                final String? id = row['id'] as String?;
+                if (id != null) {
+                  _baselineSeenMessageIds.add(id);
+                }
+              }
+              _hasCapturedBaselineWithoutReadBy = true;
+            }
+
+            for (final Map<String, dynamic> row in rows) {
+              final String? id = row['id'] as String?;
+              final String? roomId = row['room_id'] as String?;
+              final String? senderId = row['sender_id'] as String?;
+              if (id == null || roomId == null || senderId == null || senderId == activeUserId) {
+                continue;
+              }
+
+              if (openRoomId == roomId) {
+                _locallyReadMessageIds.add(id);
+                continue;
+              }
+
+              if (_locallyReadMessageIds.contains(id)) {
+                continue;
+              }
+
+              if (row.containsKey('read_by')) {
+                final List<Object?> rawReadBy = row['read_by'] as List<Object?>? ?? <Object?>[];
+                final bool isReadInDb = rawReadBy.any((Object? item) => item?.toString() == activeUserId);
+                if (isReadInDb) {
+                  continue;
+                }
+              } else if (_baselineSeenMessageIds.contains(id)) {
+                continue;
+              }
+
+              counts[roomId] = (counts[roomId] ?? 0) + 1;
+            }
+
+            unreadCountsByRoomId.value = counts;
+          },
+          onError: (Object error) {
+            if (kDebugMode) {
+              print('Erreur stream messages non lus: $error');
+            }
+          },
+        );
+  }
+
+  void _markRoomAsReadLocally(String roomId, [Iterable<String>? messageIds]) {
+    if (messageIds != null) {
+      _locallyReadMessageIds.addAll(messageIds);
+    }
+    unawaited(
+      Future<void>.microtask(() {
+        if (unreadCountsByRoomId.value.containsKey(roomId)) {
+          final Map<String, int> updated = Map<String, int>.from(unreadCountsByRoomId.value)..remove(roomId);
+          unreadCountsByRoomId.value = updated;
+        }
+      }),
+    );
+  }
 
   String? get typingIndicatorText {
     final List<String> names = typingUsernames.value;
@@ -155,16 +255,14 @@ class ChatSignals {
     unawaited(_messagesSubscription?.cancel());
     currentRoomId.value = roomId;
     isLoading.value = true;
+    _markRoomAsReadLocally(roomId);
 
     final String currentUserId = supabaseClient.auth.currentUser?.id ?? '';
     unawaited(_subscribeToTypingChannel(roomId: roomId));
 
     _messagesSubscription =
         getMessagesStreamUseCase(
-          GetChatMessagesStreamParams(
-            roomId: roomId,
-            peerPublicKeyBase64: peerPublicKeyBase64,
-          ),
+          GetChatMessagesStreamParams(roomId: roomId, peerPublicKeyBase64: peerPublicKeyBase64),
         ).listen((Either<Failure, List<MessageEntity>> either) {
           either.fold(
             ifLeft: (Failure failure) {
@@ -174,14 +272,8 @@ class ChatSignals {
               }
             },
             ifRight: (List<MessageEntity> entities) {
-              messages.value = entities
-                  .map(
-                    (MessageEntity e) => MessageViewModel(
-                      e,
-                      currentUserId: currentUserId,
-                    ),
-                  )
-                  .toList();
+              _markRoomAsReadLocally(roomId, entities.map((MessageEntity e) => e.id));
+              messages.value = entities.map((MessageEntity e) => MessageViewModel(e, currentUserId: currentUserId)).toList();
               isLoading.value = false;
             },
           );
@@ -195,11 +287,9 @@ class ChatSignals {
     final RealtimeChannel channel = supabaseClient.channel('room_typing:$roomId');
     _typingChannel = channel;
 
-    channel
-        .onPresenceSync((_) {
-          _syncTypingUsers();
-        })
-        .subscribe();
+    channel.onPresenceSync((_) {
+      _syncTypingUsers();
+    }).subscribe();
   }
 
   void _syncTypingUsers() {
@@ -262,11 +352,7 @@ class ChatSignals {
       return _cachedCurrentUsername!;
     }
     try {
-      final PostgrestMap? row = await supabaseClient
-          .from('profiles')
-          .select('username, user_tag')
-          .eq('id', user.id)
-          .maybeSingle();
+      final PostgrestMap? row = await supabaseClient.from('profiles').select('username, user_tag').eq('id', user.id).maybeSingle();
       final String? dbUsername = (row?['username'] as String?)?.trim();
       final String? dbTag = (row?['user_tag'] as String?)?.trim();
       final String? metaUsername = (user.userMetadata?['username'] as String?)?.trim();
@@ -349,11 +435,14 @@ class ChatSignals {
     _typingResetTimer = null;
     _typingExpiryCleanupTimer?.cancel();
     _typingExpiryCleanupTimer = null;
-    isTyping.value = false;
-    typingUsernames.value = <String>[];
 
     final RealtimeChannel? channel = _typingChannel;
     _typingChannel = null;
+
+    await Future<void>.delayed(Duration.zero);
+    isTyping.value = false;
+    typingUsernames.value = <String>[];
+
     if (channel != null) {
       try {
         await channel.untrack();
