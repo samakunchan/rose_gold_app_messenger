@@ -16,7 +16,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$MessageModel {
 
- String get id;@JsonKey(name: 'room_id') String get roomId;@JsonKey(name: 'sender_id') String get senderId; String get ciphertext; String get nonce;@JsonKey(name: 'key_fingerprint') String get keyFingerprint;@JsonKey(name: 'created_at') String get createdAt;@JsonKey(name: 'media_url') String? get mediaUrl;
+ String get id;@JsonKey(name: 'room_id') String get roomId;@JsonKey(name: 'sender_id') String get senderId; String get ciphertext; String get nonce;@JsonKey(name: 'key_fingerprint') String get keyFingerprint;@JsonKey(name: 'created_at') String get createdAt;@JsonKey(name: 'media_url') String? get mediaUrl;@JsonKey(name: 'read_by') List<String> get readBy;
 /// Create a copy of MessageModel
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,20 +30,20 @@ $MessageModelCopyWith<MessageModel> get copyWith => _$MessageModelCopyWithImpl<M
 @override
 bool operator ==(Object other) {
   final _this = this as MessageModel;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MessageModel&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.roomId, _this.roomId) || other.roomId == _this.roomId)&&(identical(other.senderId, _this.senderId) || other.senderId == _this.senderId)&&(identical(other.ciphertext, _this.ciphertext) || other.ciphertext == _this.ciphertext)&&(identical(other.nonce, _this.nonce) || other.nonce == _this.nonce)&&(identical(other.keyFingerprint, _this.keyFingerprint) || other.keyFingerprint == _this.keyFingerprint)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.mediaUrl, _this.mediaUrl) || other.mediaUrl == _this.mediaUrl));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MessageModel&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.roomId, _this.roomId) || other.roomId == _this.roomId)&&(identical(other.senderId, _this.senderId) || other.senderId == _this.senderId)&&(identical(other.ciphertext, _this.ciphertext) || other.ciphertext == _this.ciphertext)&&(identical(other.nonce, _this.nonce) || other.nonce == _this.nonce)&&(identical(other.keyFingerprint, _this.keyFingerprint) || other.keyFingerprint == _this.keyFingerprint)&&(identical(other.createdAt, _this.createdAt) || other.createdAt == _this.createdAt)&&(identical(other.mediaUrl, _this.mediaUrl) || other.mediaUrl == _this.mediaUrl)&&const DeepCollectionEquality().equals(other.readBy, _this.readBy));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as MessageModel;
-  return Object.hash(runtimeType,_this.id,_this.roomId,_this.senderId,_this.ciphertext,_this.nonce,_this.keyFingerprint,_this.createdAt,_this.mediaUrl);
+  return Object.hash(runtimeType,_this.id,_this.roomId,_this.senderId,_this.ciphertext,_this.nonce,_this.keyFingerprint,_this.createdAt,_this.mediaUrl,const DeepCollectionEquality().hash(_this.readBy));
 }
 
 @override
 String toString() {
   final _this = this as MessageModel;
-  return 'MessageModel(id: ${_this.id}, roomId: ${_this.roomId}, senderId: ${_this.senderId}, ciphertext: ${_this.ciphertext}, nonce: ${_this.nonce}, keyFingerprint: ${_this.keyFingerprint}, createdAt: ${_this.createdAt}, mediaUrl: ${_this.mediaUrl})';
+  return 'MessageModel(id: ${_this.id}, roomId: ${_this.roomId}, senderId: ${_this.senderId}, ciphertext: ${_this.ciphertext}, nonce: ${_this.nonce}, keyFingerprint: ${_this.keyFingerprint}, createdAt: ${_this.createdAt}, mediaUrl: ${_this.mediaUrl}, readBy: ${_this.readBy})';
 }
 
 
@@ -54,7 +54,7 @@ abstract mixin class $MessageModelCopyWith<$Res>  {
   factory $MessageModelCopyWith(MessageModel value, $Res Function(MessageModel) _then) = _$MessageModelCopyWithImpl;
 @useResult
 $Res call({
- String id,@JsonKey(name: 'room_id') String roomId,@JsonKey(name: 'sender_id') String senderId, String ciphertext, String nonce,@JsonKey(name: 'key_fingerprint') String keyFingerprint,@JsonKey(name: 'created_at') String createdAt,@JsonKey(name: 'media_url') String? mediaUrl
+ String id,@JsonKey(name: 'room_id') String roomId,@JsonKey(name: 'sender_id') String senderId, String ciphertext, String nonce,@JsonKey(name: 'key_fingerprint') String keyFingerprint,@JsonKey(name: 'created_at') String createdAt,@JsonKey(name: 'media_url') String? mediaUrl,@JsonKey(name: 'read_by') List<String> readBy
 });
 
 
@@ -71,7 +71,7 @@ class _$MessageModelCopyWithImpl<$Res>
 
 /// Create a copy of MessageModel
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? roomId = null,Object? senderId = null,Object? ciphertext = null,Object? nonce = null,Object? keyFingerprint = null,Object? createdAt = null,Object? mediaUrl = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? roomId = null,Object? senderId = null,Object? ciphertext = null,Object? nonce = null,Object? keyFingerprint = null,Object? createdAt = null,Object? mediaUrl = freezed,Object? readBy = null,}) {
   return _then(MessageModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,roomId: null == roomId ? _self.roomId : roomId // ignore: cast_nullable_to_non_nullable
@@ -81,7 +81,8 @@ as String,nonce: null == nonce ? _self.nonce : nonce // ignore: cast_nullable_to
 as String,keyFingerprint: null == keyFingerprint ? _self.keyFingerprint : keyFingerprint // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String,mediaUrl: freezed == mediaUrl ? _self.mediaUrl : mediaUrl // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,readBy: null == readBy ? _self.readBy : readBy // ignore: cast_nullable_to_non_nullable
+as List<String>,
   ));
 }
 
@@ -166,10 +167,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'room_id')  String roomId, @JsonKey(name: 'sender_id')  String senderId,  String ciphertext,  String nonce, @JsonKey(name: 'key_fingerprint')  String keyFingerprint, @JsonKey(name: 'created_at')  String createdAt, @JsonKey(name: 'media_url')  String? mediaUrl)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'room_id')  String roomId, @JsonKey(name: 'sender_id')  String senderId,  String ciphertext,  String nonce, @JsonKey(name: 'key_fingerprint')  String keyFingerprint, @JsonKey(name: 'created_at')  String createdAt, @JsonKey(name: 'media_url')  String? mediaUrl, @JsonKey(name: 'read_by')  List<String> readBy)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MessageModel() when $default != null:
-return $default(_that.id,_that.roomId,_that.senderId,_that.ciphertext,_that.nonce,_that.keyFingerprint,_that.createdAt,_that.mediaUrl);case _:
+return $default(_that.id,_that.roomId,_that.senderId,_that.ciphertext,_that.nonce,_that.keyFingerprint,_that.createdAt,_that.mediaUrl,_that.readBy);case _:
   return orElse();
 
 }
@@ -187,10 +188,10 @@ return $default(_that.id,_that.roomId,_that.senderId,_that.ciphertext,_that.nonc
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'room_id')  String roomId, @JsonKey(name: 'sender_id')  String senderId,  String ciphertext,  String nonce, @JsonKey(name: 'key_fingerprint')  String keyFingerprint, @JsonKey(name: 'created_at')  String createdAt, @JsonKey(name: 'media_url')  String? mediaUrl)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id, @JsonKey(name: 'room_id')  String roomId, @JsonKey(name: 'sender_id')  String senderId,  String ciphertext,  String nonce, @JsonKey(name: 'key_fingerprint')  String keyFingerprint, @JsonKey(name: 'created_at')  String createdAt, @JsonKey(name: 'media_url')  String? mediaUrl, @JsonKey(name: 'read_by')  List<String> readBy)  $default,) {final _that = this;
 switch (_that) {
 case _MessageModel():
-return $default(_that.id,_that.roomId,_that.senderId,_that.ciphertext,_that.nonce,_that.keyFingerprint,_that.createdAt,_that.mediaUrl);case _:
+return $default(_that.id,_that.roomId,_that.senderId,_that.ciphertext,_that.nonce,_that.keyFingerprint,_that.createdAt,_that.mediaUrl,_that.readBy);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -207,10 +208,10 @@ return $default(_that.id,_that.roomId,_that.senderId,_that.ciphertext,_that.nonc
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'room_id')  String roomId, @JsonKey(name: 'sender_id')  String senderId,  String ciphertext,  String nonce, @JsonKey(name: 'key_fingerprint')  String keyFingerprint, @JsonKey(name: 'created_at')  String createdAt, @JsonKey(name: 'media_url')  String? mediaUrl)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id, @JsonKey(name: 'room_id')  String roomId, @JsonKey(name: 'sender_id')  String senderId,  String ciphertext,  String nonce, @JsonKey(name: 'key_fingerprint')  String keyFingerprint, @JsonKey(name: 'created_at')  String createdAt, @JsonKey(name: 'media_url')  String? mediaUrl, @JsonKey(name: 'read_by')  List<String> readBy)?  $default,) {final _that = this;
 switch (_that) {
 case _MessageModel() when $default != null:
-return $default(_that.id,_that.roomId,_that.senderId,_that.ciphertext,_that.nonce,_that.keyFingerprint,_that.createdAt,_that.mediaUrl);case _:
+return $default(_that.id,_that.roomId,_that.senderId,_that.ciphertext,_that.nonce,_that.keyFingerprint,_that.createdAt,_that.mediaUrl,_that.readBy);case _:
   return null;
 
 }
@@ -222,7 +223,7 @@ return $default(_that.id,_that.roomId,_that.senderId,_that.ciphertext,_that.nonc
 @JsonSerializable()
 
 class _MessageModel implements MessageModel {
-   _MessageModel({required this.id, @JsonKey(name: 'room_id') required this.roomId, @JsonKey(name: 'sender_id') required this.senderId, required this.ciphertext, required this.nonce, @JsonKey(name: 'key_fingerprint') required this.keyFingerprint, @JsonKey(name: 'created_at') required this.createdAt, @JsonKey(name: 'media_url') this.mediaUrl});
+   _MessageModel({required this.id, @JsonKey(name: 'room_id') required this.roomId, @JsonKey(name: 'sender_id') required this.senderId, required this.ciphertext, required this.nonce, @JsonKey(name: 'key_fingerprint') required this.keyFingerprint, @JsonKey(name: 'created_at') required this.createdAt, @JsonKey(name: 'media_url') this.mediaUrl, @JsonKey(name: 'read_by')  List<String> readBy = const <String>[]}): _readBy = readBy;
   factory _MessageModel.fromJson(Map<String, dynamic> json) => _$MessageModelFromJson(json);
 
 @override final  String id;
@@ -233,6 +234,13 @@ class _MessageModel implements MessageModel {
 @override@JsonKey(name: 'key_fingerprint') final  String keyFingerprint;
 @override@JsonKey(name: 'created_at') final  String createdAt;
 @override@JsonKey(name: 'media_url') final  String? mediaUrl;
+ final  List<String> _readBy;
+@override@JsonKey(name: 'read_by') List<String> get readBy {
+  if (_readBy is EqualUnmodifiableListView) return _readBy;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_readBy);
+}
+
 
 /// Create a copy of MessageModel
 /// with the given fields replaced by the non-null parameter values.
@@ -247,18 +255,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MessageModel&&(identical(other.id, id) || other.id == id)&&(identical(other.roomId, roomId) || other.roomId == roomId)&&(identical(other.senderId, senderId) || other.senderId == senderId)&&(identical(other.ciphertext, ciphertext) || other.ciphertext == ciphertext)&&(identical(other.nonce, nonce) || other.nonce == nonce)&&(identical(other.keyFingerprint, keyFingerprint) || other.keyFingerprint == keyFingerprint)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.mediaUrl, mediaUrl) || other.mediaUrl == mediaUrl));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MessageModel&&(identical(other.id, id) || other.id == id)&&(identical(other.roomId, roomId) || other.roomId == roomId)&&(identical(other.senderId, senderId) || other.senderId == senderId)&&(identical(other.ciphertext, ciphertext) || other.ciphertext == ciphertext)&&(identical(other.nonce, nonce) || other.nonce == nonce)&&(identical(other.keyFingerprint, keyFingerprint) || other.keyFingerprint == keyFingerprint)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.mediaUrl, mediaUrl) || other.mediaUrl == mediaUrl)&&const DeepCollectionEquality().equals(other.readBy, _readBy));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,roomId,senderId,ciphertext,nonce,keyFingerprint,createdAt,mediaUrl);
+    return Object.hash(runtimeType,id,roomId,senderId,ciphertext,nonce,keyFingerprint,createdAt,mediaUrl,const DeepCollectionEquality().hash(_readBy));
 }
 
 @override
 String toString() {
-    return 'MessageModel(id: $id, roomId: $roomId, senderId: $senderId, ciphertext: $ciphertext, nonce: $nonce, keyFingerprint: $keyFingerprint, createdAt: $createdAt, mediaUrl: $mediaUrl)';
+    return 'MessageModel(id: $id, roomId: $roomId, senderId: $senderId, ciphertext: $ciphertext, nonce: $nonce, keyFingerprint: $keyFingerprint, createdAt: $createdAt, mediaUrl: $mediaUrl, readBy: $readBy)';
 }
 
 
@@ -269,7 +277,7 @@ abstract mixin class _$MessageModelCopyWith<$Res> implements $MessageModelCopyWi
   factory _$MessageModelCopyWith(_MessageModel value, $Res Function(_MessageModel) _then) = __$MessageModelCopyWithImpl;
 @override @useResult
 $Res call({
- String id,@JsonKey(name: 'room_id') String roomId,@JsonKey(name: 'sender_id') String senderId, String ciphertext, String nonce,@JsonKey(name: 'key_fingerprint') String keyFingerprint,@JsonKey(name: 'created_at') String createdAt,@JsonKey(name: 'media_url') String? mediaUrl
+ String id,@JsonKey(name: 'room_id') String roomId,@JsonKey(name: 'sender_id') String senderId, String ciphertext, String nonce,@JsonKey(name: 'key_fingerprint') String keyFingerprint,@JsonKey(name: 'created_at') String createdAt,@JsonKey(name: 'media_url') String? mediaUrl,@JsonKey(name: 'read_by') List<String> readBy
 });
 
 
@@ -286,7 +294,7 @@ class __$MessageModelCopyWithImpl<$Res>
 
 /// Create a copy of MessageModel
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? roomId = null,Object? senderId = null,Object? ciphertext = null,Object? nonce = null,Object? keyFingerprint = null,Object? createdAt = null,Object? mediaUrl = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? roomId = null,Object? senderId = null,Object? ciphertext = null,Object? nonce = null,Object? keyFingerprint = null,Object? createdAt = null,Object? mediaUrl = freezed,Object? readBy = null,}) {
   return _then(_MessageModel(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,roomId: null == roomId ? _self.roomId : roomId // ignore: cast_nullable_to_non_nullable
@@ -296,7 +304,8 @@ as String,nonce: null == nonce ? _self.nonce : nonce // ignore: cast_nullable_to
 as String,keyFingerprint: null == keyFingerprint ? _self.keyFingerprint : keyFingerprint // ignore: cast_nullable_to_non_nullable
 as String,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String,mediaUrl: freezed == mediaUrl ? _self.mediaUrl : mediaUrl // ignore: cast_nullable_to_non_nullable
-as String?,
+as String?,readBy: null == readBy ? _self._readBy : readBy // ignore: cast_nullable_to_non_nullable
+as List<String>,
   ));
 }
 

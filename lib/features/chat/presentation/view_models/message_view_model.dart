@@ -34,6 +34,8 @@ class MessageViewModel {
   int? get mediaFileSize => entity.attachment?.fileSize;
   String get keyFingerprint => entity.keyFingerprint;
   bool get isMe => entity.senderId == currentUserId;
+  List<String> get readBy => entity.readBy;
+  bool get isRead => entity.readBy.any((String id) => id != entity.senderId);
   String get createdAt => timeago.format(DateTime.parse(entity.createdAt), locale: _locale);
   String get hourTime => DateFormat('HH:mm', _locale).format(DateTime.parse(entity.createdAt).toLocal());
 }

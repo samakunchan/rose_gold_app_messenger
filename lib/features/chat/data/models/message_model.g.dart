@@ -15,6 +15,7 @@ _MessageModel _$MessageModelFromJson(Map<String, dynamic> json) => _MessageModel
   keyFingerprint: json['key_fingerprint'] as String,
   createdAt: json['created_at'] as String,
   mediaUrl: json['media_url'] as String?,
+  readBy: (json['read_by'] as List<dynamic>?)?.map((e) => e as String).toList() ?? const <String>[],
 );
 
 Map<String, dynamic> _$MessageModelToJson(_MessageModel instance) => <String, dynamic>{
@@ -26,4 +27,5 @@ Map<String, dynamic> _$MessageModelToJson(_MessageModel instance) => <String, dy
   'key_fingerprint': instance.keyFingerprint,
   'created_at': instance.createdAt,
   'media_url': instance.mediaUrl,
+  'read_by': instance.readBy,
 };

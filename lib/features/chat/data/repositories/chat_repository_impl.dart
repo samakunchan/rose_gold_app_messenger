@@ -122,13 +122,9 @@ class ChatRepositoryImpl extends ChatRepository {
           (String keyUserId) => !allMembers.containsKey(keyUserId),
         );
         final bool membershipChangedAfterKey =
-            rowCreatedAt != null &&
-            memberUpdatedAt != null &&
-            rowCreatedAt.isBefore(memberUpdatedAt.subtract(const Duration(seconds: 2)));
+            rowCreatedAt != null && memberUpdatedAt != null && rowCreatedAt.isBefore(memberUpdatedAt.subtract(const Duration(seconds: 2)));
         final bool keyOlderThanMyJoin =
-            rowCreatedAt != null &&
-            myJoinedAt != null &&
-            rowCreatedAt.isBefore(myJoinedAt.subtract(const Duration(seconds: 2)));
+            rowCreatedAt != null && myJoinedAt != null && rowCreatedAt.isBefore(myJoinedAt.subtract(const Duration(seconds: 2)));
 
         if (hasNewMemberWithoutKey || hasDepartedMemberWithKey || membershipChangedAfterKey || keyOlderThanMyJoin) {
           // Rotation automatique pour la nouvelle époque (Backward & Forward Secrecy)
@@ -302,8 +298,9 @@ class ChatRepositoryImpl extends ChatRepository {
         mediaUrl: params.mediaUrl,
       );
 
-      final Map<String, ({String username, String? avatarUrl})> myProfileMap =
-          await remoteDataSource.getProfilesByUserIds(userIds: <String>[userId]);
+      final Map<String, ({String username, String? avatarUrl})> myProfileMap = await remoteDataSource.getProfilesByUserIds(
+        userIds: <String>[userId],
+      );
       final ({String username, String? avatarUrl})? myProfile = myProfileMap[userId];
 
       final MessageEntity entity = MessageEntity(
@@ -317,6 +314,7 @@ class ChatRepositoryImpl extends ChatRepository {
         senderAvatarUrl: myProfile?.avatarUrl,
         mediaUrl: created.mediaUrl,
         attachment: attachment,
+        readBy: created.readBy,
       );
 
       unawaited(localDataSource.saveMessage(entity));
@@ -430,9 +428,7 @@ class ChatRepositoryImpl extends ChatRepository {
               }
 
               if (k != null) {
-                final String fp = (rowFp != null && rowFp.isNotEmpty)
-                    ? rowFp
-                    : await cryptoDataSource.getSecretKeyFingerprint(k);
+                final String fp = (rowFp != null && rowFp.isNotEmpty) ? rowFp : await cryptoDataSource.getSecretKeyFingerprint(k);
                 roomKeysByFingerprint[fp] = k;
                 latestRoomKey = k;
               }
@@ -471,19 +467,24 @@ class ChatRepositoryImpl extends ChatRepository {
 
         // 5. Récupérer les profils (username + avatar_url) de tous les expéditeurs
         final List<String> allSenderIds = models.map((MessageModel m) => m.senderId).toSet().toList();
-        final Map<String, ({String username, String? avatarUrl})> profilesByUserId =
-            await remoteDataSource.getProfilesByUserIds(userIds: allSenderIds);
+        final Map<String, ({String username, String? avatarUrl})> profilesByUserId = await remoteDataSource.getProfilesByUserIds(
+          userIds: allSenderIds,
+        );
 
         // 6. Déchiffrer uniquement les messages appartenant aux époques où l'utilisateur était présent
         final List<MessageEntity> entities = <MessageEntity>[];
         final List<MessageEntity> newlyDecrypted = <MessageEntity>[];
+        bool hasUnreadFromPeers = false;
 
         for (final MessageModel model in models) {
           // Ignorer tout message d'une époque pour laquelle l'utilisateur ne possède pas la clé
-          final bool hasEpochKey =
-              roomKeysByFingerprint.containsKey(model.keyFingerprint) || model.senderId == userId;
+          final bool hasEpochKey = roomKeysByFingerprint.containsKey(model.keyFingerprint) || model.senderId == userId;
           if (!hasEpochKey) {
             continue;
+          }
+
+          if (model.senderId != userId && !model.readBy.contains(userId)) {
+            hasUnreadFromPeers = true;
           }
 
           final ({String username, String? avatarUrl})? senderProfile = profilesByUserId[model.senderId];
@@ -504,6 +505,7 @@ class ChatRepositoryImpl extends ChatRepository {
                   senderAvatarUrl: senderProfile?.avatarUrl ?? cachedEntity.senderAvatarUrl,
                   mediaUrl: cachedEntity.mediaUrl,
                   attachment: cachedEntity.attachment,
+                  readBy: model.readBy,
                 ),
               );
               continue;
@@ -591,10 +593,16 @@ class ChatRepositoryImpl extends ChatRepository {
             senderAvatarUrl: senderProfile?.avatarUrl,
             mediaUrl: model.mediaUrl,
             attachment: attachment,
+            readBy: model.readBy,
           );
 
           entities.add(entity);
           newlyDecrypted.add(entity);
+        }
+
+        // Marquer comme lus en temps réel les nouveaux messages reçus dans ce salon
+        if (hasUnreadFromPeers) {
+          unawaited(remoteDataSource.markRoomMessagesAsRead(roomId: params.roomId));
         }
 
         // Sauvegarder uniquement les messages déchiffrés avec succès dans Drift

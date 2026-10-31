@@ -84,7 +84,12 @@ class ChatMessageBubble extends StatelessWidget {
                           message.hourTime,
                           style: theme.textTheme.labelSmall?.copyWith(color: textColor.withValues(alpha: 0.7)),
                         ),
-                        if (isMe) Icon(Icons.done_all, size: 14, color: textColor.withValues(alpha: 0.7)),
+                        if (isMe)
+                          Icon(
+                            message.isRead ? Icons.done_all : Icons.done,
+                            size: 14,
+                            color: textColor.withValues(alpha: message.isRead ? 1.0 : 0.7),
+                          ),
                       ],
                     ),
                   ],

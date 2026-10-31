@@ -25,6 +25,7 @@ abstract class ChatRemoteDataSource {
   Future<Map<String, ({String username, String? avatarUrl})>> getProfilesByUserIds({
     required List<String> userIds,
   });
+  Future<void> markRoomMessagesAsRead({required String roomId});
   Future<MessageModel> sendMessage({
     required String roomId,
     required String ciphertext,
@@ -219,13 +220,9 @@ class ChatRemoteDataSourceImpl extends ChatRemoteDataSource {
       return <String, ({String username, String? avatarUrl})>{};
     }
     try {
-      final List<Map<String, dynamic>> rows = await client
-          .from('profiles')
-          .select('id, username, user_tag, avatar_url')
-          .inFilter('id', userIds);
+      final List<Map<String, dynamic>> rows = await client.from('profiles').select('id, username, user_tag, avatar_url').inFilter('id', userIds);
 
-      final Map<String, ({String username, String? avatarUrl})> result =
-          <String, ({String username, String? avatarUrl})>{};
+      final Map<String, ({String username, String? avatarUrl})> result = <String, ({String username, String? avatarUrl})>{};
       for (final Map<String, dynamic> row in rows) {
         final String id = row['id'] as String;
         final String? rawUsername = row['username'] as String?;
@@ -239,6 +236,20 @@ class ChatRemoteDataSourceImpl extends ChatRemoteDataSource {
       return result;
     } on Exception catch (_) {
       return <String, ({String username, String? avatarUrl})>{};
+    }
+  }
+
+  @override
+  Future<void> markRoomMessagesAsRead({required String roomId}) async {
+    try {
+      await client.rpc<void>(
+        'mark_room_messages_as_read',
+        params: <String, dynamic>{'p_room_id': roomId},
+      );
+    } on Exception catch (e) {
+      if (kDebugMode) {
+        print('Erreur markRoomMessagesAsRead: $e');
+      }
     }
   }
 

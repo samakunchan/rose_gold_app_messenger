@@ -13,6 +13,7 @@ class MessageEntity extends Equatable {
     this.senderAvatarUrl,
     this.mediaUrl,
     this.attachment,
+    this.readBy = const <String>[],
   });
 
   final String id;
@@ -25,6 +26,7 @@ class MessageEntity extends Equatable {
   final String? senderAvatarUrl;
   final String? mediaUrl;
   final EncryptedMediaAttachment? attachment;
+  final List<String> readBy;
 
   @override
   List<Object?> get props => <Object?>[
@@ -38,5 +40,6 @@ class MessageEntity extends Equatable {
     senderAvatarUrl,
     mediaUrl,
     attachment,
+    readBy,
   ];
 }
