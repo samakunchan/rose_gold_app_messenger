@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:intl/intl.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/entities/encrypted_media_attachment.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/entities/message_entity.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -34,4 +35,5 @@ class MessageViewModel {
   String get keyFingerprint => entity.keyFingerprint;
   bool get isMe => entity.senderId == currentUserId;
   String get createdAt => timeago.format(DateTime.parse(entity.createdAt), locale: _locale);
+  String get hourTime => DateFormat('HH:mm', _locale).format(DateTime.parse(entity.createdAt).toLocal());
 }
