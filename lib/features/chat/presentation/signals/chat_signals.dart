@@ -49,6 +49,7 @@ class ChatSignals {
   final Signal<bool> isPassphraseLoading = .new(false);
   final Signal<bool> isTyping = .new(false);
   final Signal<String?> currentRoomId = .new(null);
+  final Signal<String?> selectedMessageId = signal<String?>(null);
   final Signal<String?> currentPassphrase = signal<String?>(null);
   final Signal<List<MessageViewModel>> messages = signal<List<MessageViewModel>>(<MessageViewModel>[]);
   final Signal<List<MessageViewModel>> searchResults = signal<List<MessageViewModel>>(<MessageViewModel>[]);
@@ -70,6 +71,29 @@ class ChatSignals {
   String? _cachedCurrentUserId;
 
   int getUnreadCountForRoom(String roomId) => unreadCountsByRoomId.value[roomId] ?? 0;
+
+  MessageViewModel? get selectedMessage {
+    final String? id = selectedMessageId.value;
+    if (id == null) {
+      return null;
+    }
+    for (final MessageViewModel item in messages.value) {
+      if (item.id == id) {
+        return item;
+      }
+    }
+    return null;
+  }
+
+  void toggleSelectedMessage(String messageId) {
+    selectedMessageId.value = selectedMessageId.value == messageId ? null : messageId;
+  }
+
+  void clearSelectedMessage() {
+    if (selectedMessageId.value != null) {
+      selectedMessageId.value = null;
+    }
+  }
 
   void startListeningToUnreadMessages() {
     final String currentUserId = supabaseClient.auth.currentUser?.id ?? '';
@@ -560,6 +584,7 @@ class ChatSignals {
     await _messagesSubscription?.cancel();
     _messagesSubscription = null;
     currentRoomId.value = null;
+    selectedMessageId.value = null;
     messages.value = <MessageViewModel>[];
     _decryptedMediaCache.clear();
     clearSearch();

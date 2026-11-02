@@ -105,6 +105,63 @@ class ChatThemeExtension extends ThemeExtension<ChatThemeExtension> {
     borderRadius: .all(.circular(AppRadius.full.value)),
   );
 
+  /// Decoration for highlighted outgoing message bubbles when long-pressed.
+  BoxDecoration get selectedOutgoingBubbleDecoration => BoxDecoration(
+    gradient: outgoingBubbleGradient,
+    borderRadius: outgoingBorderRadius,
+    border: .all(color: onlineRingColor, width: 2),
+    boxShadow: <BoxShadow>[
+      BoxShadow(color: onlineRingColor.withValues(alpha: 0.35), blurRadius: 12, offset: const Offset(0, 4)),
+    ],
+  );
+
+  /// Decoration for highlighted incoming message bubbles when long-pressed.
+  BoxDecoration get selectedIncomingBubbleDecoration => BoxDecoration(
+    color: incomingBubbleColor,
+    borderRadius: incomingBorderRadius,
+    border: .all(color: onlineRingColor, width: 2),
+    boxShadow: <BoxShadow>[
+      BoxShadow(color: onlineRingColor.withValues(alpha: 0.28), blurRadius: 12, offset: const Offset(0, 4)),
+    ],
+  );
+
+  /// Decoration for highlighted text inside an outgoing message bubble.
+  BoxDecoration get selectedOutgoingTextHighlightDecoration => BoxDecoration(
+    color: outgoingTextColor.withValues(alpha: 0.24),
+    borderRadius: .all(.circular(AppRadius.xs.value)),
+  );
+
+  /// Decoration for highlighted text inside an incoming message bubble.
+  BoxDecoration get selectedIncomingTextHighlightDecoration => BoxDecoration(
+    color: waveformBackgroundColor,
+    borderRadius: .all(.circular(AppRadius.xs.value)),
+  );
+
+  /// Decoration for the contextual menu displayed on the right side of the screen.
+  BoxDecoration get contextMenuDecoration => BoxDecoration(
+    color: incomingBubbleColor,
+    borderRadius: .only(
+      topLeft: .circular(AppRadius.lg.value),
+      bottomLeft: .circular(AppRadius.lg.value),
+      topRight: .circular(AppRadius.sm.value),
+      bottomRight: .circular(AppRadius.sm.value),
+    ),
+    border: .all(color: onlineRingColor.withValues(alpha: 0.65), width: 1),
+    boxShadow: <BoxShadow>[
+      BoxShadow(color: onlineRingColor.withValues(alpha: 0.22), blurRadius: 16, offset: const Offset(-4, 4)),
+    ],
+  );
+
+  /// Dark backdrop gradient behind the side contextual menu.
+  BoxDecoration get contextMenuBackdropDecoration => BoxDecoration(
+    gradient: LinearGradient(
+      colors: <Color>[
+        kEspressoDarkTextColor.withValues(alpha: 0.38),
+        kEspressoDarkTextColor.withValues(alpha: 0.72),
+      ],
+    ),
+  );
+
   ButtonStyle get sendMessageElevatedButtonStyle {
     return ElevatedButton.styleFrom(
       shape: const CircleBorder(),
