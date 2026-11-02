@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:rose_gold_app_messenger/features/chat/presentation/signals/chat_signals.dart';
 import 'package:rose_gold_app_messenger/features/chat/presentation/view_models/message_view_model.dart';
 import 'package:rose_gold_app_messenger/features/chat/presentation/widgets/chat_context_menu_action_button.dart';
+import 'package:rose_gold_app_messenger/features/chat/presentation/widgets/chat_quick_reaction_bar.dart';
 import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
 import 'package:rose_gold_app_messenger/themes/themes_all_export.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -39,13 +40,13 @@ class ChatMessageContextMenu extends StatelessWidget {
                       ),
                     ),
 
-                    /// Menu contextuel sur le côté droit de l'écran
+                    /// Menu contextuel sur le côté droit de l'écran (actions)
                     Align(
                       alignment: .centerRight,
                       child: Padding(
                         padding: .only(right: AppSpacing.spaceSm.value),
                         child: Container(
-                          width: 210,
+                          width: 228,
                           padding: .symmetric(
                             horizontal: AppSpacing.spaceSm.value,
                             vertical: AppSpacing.spaceSm.value,
@@ -66,12 +67,13 @@ class ChatMessageContextMenu extends StatelessWidget {
                                 label: 'Épingler',
                                 onTap: () {},
                               ),
-                              ChatContextMenuActionButton(
-                                icon: Icons.flag_outlined,
-                                label: 'Signaler',
-                                isDestructive: true,
-                                onTap: () {},
-                              ),
+                              if (!selectedMessage.isMe)
+                                ChatContextMenuActionButton(
+                                  icon: Icons.flag_outlined,
+                                  label: 'Signaler',
+                                  isDestructive: true,
+                                  onTap: () {},
+                                ),
                               const Divider(height: 8),
                               ChatContextMenuActionButton(
                                 icon: Icons.close_rounded,
@@ -81,6 +83,18 @@ class ChatMessageContextMenu extends StatelessWidget {
                             ],
                           ),
                         ),
+                      ),
+                    ),
+
+                    /// Barre d'emotes en bas de l'écran pour tous les messages (y compris les siens)
+                    Align(
+                      alignment: .bottomCenter,
+                      child: Padding(
+                        padding: .symmetric(
+                          horizontal: AppSpacing.spaceMd.value,
+                          vertical: AppSpacing.spaceMd.value,
+                        ),
+                        child: const ChatQuickReactionBar(),
                       ),
                     ),
                   ],
