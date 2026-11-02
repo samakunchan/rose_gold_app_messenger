@@ -52,6 +52,7 @@ class RoomInvitationRepositoryImpl extends RoomInvitationRepository {
       await dataSource.sendInvitation(roomId: params.roomId, invitedUserId: params.invitedUserId);
       return const Right<Failure, bool>(true);
     } on PostgrestException catch (e) {
+      print(e);
       if (e.message.contains('patienter') || e.message.contains('déjà en cours')) {
         return const Left<Failure, bool>(DoNotSpamFailure());
       }

@@ -5,6 +5,7 @@ import 'package:rose_gold_app_messenger/features/moderation/domain/repositories/
 import 'package:rose_gold_app_messenger/features/moderation/domain/usecases/block_user_use_case.dart';
 import 'package:rose_gold_app_messenger/features/moderation/domain/usecases/get_blocked_users_use_case.dart';
 import 'package:rose_gold_app_messenger/features/moderation/domain/usecases/report_invitation_use_case.dart';
+import 'package:rose_gold_app_messenger/features/moderation/domain/usecases/report_room_use_case.dart';
 import 'package:rose_gold_app_messenger/features/moderation/domain/usecases/unblock_user_use_case.dart';
 import 'package:rose_gold_app_messenger/features/moderation/presentation/signals/moderation_signals.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -24,6 +25,7 @@ void initModerationDI() {
     ..registerLazySingleton<BlockUserUseCase>(() => BlockUserUseCase(kGetIt<ModerationRepository>()))
     ..registerLazySingleton<UnblockUserUseCase>(() => UnblockUserUseCase(kGetIt<ModerationRepository>()))
     ..registerLazySingleton<ReportInvitationUseCase>(() => ReportInvitationUseCase(kGetIt<ModerationRepository>()))
+    ..registerLazySingleton<ReportRoomUseCase>(() => ReportRoomUseCase(kGetIt<ModerationRepository>()))
     /// Moderation - Signals
     ..registerLazySingleton<ModerationSignals>(
       () => ModerationSignals(
@@ -31,6 +33,7 @@ void initModerationDI() {
         blockUserUseCase: kGetIt<BlockUserUseCase>(),
         unblockUserUseCase: kGetIt<UnblockUserUseCase>(),
         reportInvitationUseCase: kGetIt<ReportInvitationUseCase>(),
+        reportRoomUseCase: kGetIt<ReportRoomUseCase>(),
       ),
     );
 }

@@ -71,6 +71,14 @@ class RoomInvitationDataSourceImpl extends RoomInvitationDataSource {
       }
 
       try {
+        final List<Map<String, dynamic>> blockedRows = await client
+            .from('blocked_users')
+            .select('blocked_id')
+            .eq('blocker_id', currentUserId);
+        final Set<String> blockedUserIds = blockedRows
+            .map((Map<String, dynamic> row) => row['blocked_id'] as String)
+            .toSet();
+
         final List<Map<String, dynamic>> response = await client
             .from('room_invitations')
             .select(
@@ -79,7 +87,10 @@ class RoomInvitationDataSourceImpl extends RoomInvitationDataSource {
             .eq('invited_user_id', currentUserId)
             .eq('status', 'pending');
 
-        return response.map(RoomInvitationModel.fromJson).toList();
+        return response
+            .where((Map<String, dynamic> item) => !blockedUserIds.contains(item['inviter_id'] as String?))
+            .map(RoomInvitationModel.fromJson)
+            .toList();
       } on Exception catch (_) {
         return pending.map(RoomInvitationModel.fromJson).toList();
       }

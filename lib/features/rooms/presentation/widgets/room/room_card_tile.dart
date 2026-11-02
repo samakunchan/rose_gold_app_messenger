@@ -108,7 +108,14 @@ class RoomCardTile extends StatelessWidget {
                     if (room.description != null && room.description!.trim().isNotEmpty)
                       Text(
                         room.description!,
-                        style: theme.textTheme.bodySmall?.copyWith(color: kTaupeMutedTextColor),
+                        style: theme.textTheme.bodySmall?.copyWith(color: kTaupeMutedTextColor, fontStyle: .italic),
+                        maxLines: 1,
+                        overflow: .ellipsis,
+                      )
+                    else
+                      Text(
+                        'Aucune description',
+                        style: theme.textTheme.bodySmall?.copyWith(color: kTaupeMutedTextColor, fontStyle: .italic),
                         maxLines: 1,
                         overflow: .ellipsis,
                       ),

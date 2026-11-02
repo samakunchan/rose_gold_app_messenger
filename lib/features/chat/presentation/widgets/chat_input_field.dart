@@ -152,12 +152,16 @@ class _ChatInputFieldState extends State<ChatInputField> {
                     onSubmitted: (_) => unawaited(_handleSend()),
                   ),
                 ),
-                IconButton.filled(
-                  onPressed: isSending ? null : _handleSend,
-                  icon: isSending
-                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Icon(Icons.send_rounded),
-                ),
+                if (isSending)
+                  const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                else
+                  const SizedBox(width: 18, height: 18),
+                // IconButton.filled(
+                //   onPressed: isSending ? null : _handleSend,
+                //   icon: isSending
+                //       ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                //       : const Icon(Icons.send_rounded),
+                // ),
               ],
             ),
           ),

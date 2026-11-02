@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
+import 'package:rose_gold_app_messenger/features/moderation/presentation/widgets/report_room_bottom_sheet.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/screens/edit_room_screen.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/view_models/room_view_model.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -8,17 +11,17 @@ class RoomAppBar extends SignalWidget implements PreferredSizeWidget {
     required this.name,
     required this.roomId,
     required this.isCurrentUserOwner,
-    // this.roomDescription,
-    // this.roomAvatarUrl,
     this.currentRoom,
+    this.ownerId,
+    this.ownerUsername,
     super.key,
   });
   final String name;
   final String roomId;
-  // final String? roomDescription;
-  // final String? roomAvatarUrl;
   final bool isCurrentUserOwner;
   final RoomViewModel? currentRoom;
+  final String? ownerId;
+  final String? ownerUsername;
 
   @override
   Widget build(BuildContext context) {
@@ -33,6 +36,22 @@ class RoomAppBar extends SignalWidget implements PreferredSizeWidget {
         style: theme.textTheme.displayMedium?.copyWith(fontWeight: .bold, color: theme.colorScheme.onSurface),
       ),
       actions: <Widget>[
+        if (!isCurrentUserOwner)
+          IconButton(
+            tooltip: 'Signaler ce salon',
+            icon: const Icon(Icons.flag_outlined),
+            onPressed: () {
+              unawaited(
+                ReportRoomBottomSheet.show(
+                  context,
+                  roomId: roomId,
+                  roomName: roomName,
+                  ownerId: ownerId ?? currentRoom?.createdBy,
+                  ownerUsername: ownerUsername,
+                ),
+              );
+            },
+          ),
         IconButton(
           tooltip: 'Paramètres du salon',
           icon: const Icon(Icons.settings_outlined),

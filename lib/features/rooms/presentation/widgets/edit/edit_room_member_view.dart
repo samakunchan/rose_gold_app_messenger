@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
+import 'package:rose_gold_app_messenger/features/moderation/presentation/widgets/report_room_bottom_sheet.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/signals/room_members_signals.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/widgets/forms/zone_danger_actions.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/widgets/monogram_user.dart';
@@ -112,6 +115,22 @@ class EditRoomMemberView extends StatelessWidget {
         ),
 
         const Divider(),
+
+        // Signalement du salon
+        ZoneDangerActions(
+          title: 'Signaler ce salon',
+          description: 'Si ce salon enfreint les règles (contenu inapproprié, harcèlement, arnaque), vous pouvez le signaler.',
+          titleButton: 'Signaler ce salon',
+          onPressed: () {
+            unawaited(
+              ReportRoomBottomSheet.show(
+                context,
+                roomId: roomId,
+                roomName: roomName,
+              ),
+            );
+          },
+        ),
 
         // Au bottom pour le membre : Bouton Quitter ce salon
         ZoneDangerActions(

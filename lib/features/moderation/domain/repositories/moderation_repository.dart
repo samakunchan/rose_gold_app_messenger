@@ -8,4 +8,5 @@ abstract class ModerationRepository {
   Future<Either<Failure, bool>> blockUser({required BlockUserParams params});
   Future<Either<Failure, bool>> unblockUser({required UnblockUserParams params});
   Future<Either<Failure, bool>> reportInvitation({required ReportInvitationParams params});
+  Future<Either<Failure, bool>> reportRoom({required ReportRoomParams params});
 }

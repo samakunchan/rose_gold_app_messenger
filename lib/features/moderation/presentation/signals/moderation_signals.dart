@@ -6,6 +6,7 @@ import 'package:rose_gold_app_messenger/features/moderation/domain/usecases/bloc
 import 'package:rose_gold_app_messenger/features/moderation/domain/usecases/get_blocked_users_use_case.dart';
 import 'package:rose_gold_app_messenger/features/moderation/domain/usecases/params.dart';
 import 'package:rose_gold_app_messenger/features/moderation/domain/usecases/report_invitation_use_case.dart';
+import 'package:rose_gold_app_messenger/features/moderation/domain/usecases/report_room_use_case.dart';
 import 'package:rose_gold_app_messenger/features/moderation/domain/usecases/unblock_user_use_case.dart';
 import 'package:rose_gold_app_messenger/features/moderation/presentation/view_models/blocked_user_view_model.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -16,12 +17,14 @@ class ModerationSignals {
     required this.blockUserUseCase,
     required this.unblockUserUseCase,
     required this.reportInvitationUseCase,
+    required this.reportRoomUseCase,
   });
 
   final GetBlockedUsersUseCase getBlockedUsersUseCase;
   final BlockUserUseCase blockUserUseCase;
   final UnblockUserUseCase unblockUserUseCase;
   final ReportInvitationUseCase reportInvitationUseCase;
+  final ReportRoomUseCase reportRoomUseCase;
 
   final Signal<List<BlockedUserViewModel>> blockedUsers = signal<List<BlockedUserViewModel>>(<BlockedUserViewModel>[]);
   final Signal<bool> isLoading = signal<bool>(false);
@@ -124,6 +127,43 @@ class ModerationSignals {
       ifRight: (bool value) async {
         success = value;
         if (blockUser) {
+          await fetchBlockedUsers();
+        }
+      },
+    );
+
+    isLoading.value = false;
+    return success;
+  }
+
+  Future<bool> reportRoom({
+    required String reportedUserId,
+    required String roomId,
+    required String reason,
+    String? details,
+    bool blockOwner = false,
+  }) async {
+    isLoading.value = true;
+    errorMessage.value = null;
+
+    final Either<Failure, bool> result = await reportRoomUseCase(
+      ReportRoomParams(
+        reportedUserId: reportedUserId,
+        roomId: roomId,
+        reason: reason,
+        details: details,
+        blockOwner: blockOwner,
+      ),
+    );
+
+    bool success = false;
+    await result.fold(
+      ifLeft: (Failure failure) async {
+        errorMessage.value = failure.message;
+      },
+      ifRight: (bool value) async {
+        success = value;
+        if (blockOwner) {
           await fetchBlockedUsers();
         }
       },

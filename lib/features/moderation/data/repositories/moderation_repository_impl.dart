@@ -59,4 +59,20 @@ class ModerationRepositoryImpl implements ModerationRepository {
       return Left<Failure, bool>(ServerFailure(message: e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, bool>> reportRoom({required ReportRoomParams params}) async {
+    try {
+      final bool res = await remoteDataSource.reportRoom(
+        reportedUserId: params.reportedUserId,
+        roomId: params.roomId,
+        reason: params.reason,
+        details: params.details,
+        blockOwner: params.blockOwner,
+      );
+      return Right<Failure, bool>(res);
+    } on Object catch (e) {
+      return Left<Failure, bool>(ServerFailure(message: e.toString()));
+    }
+  }
 }

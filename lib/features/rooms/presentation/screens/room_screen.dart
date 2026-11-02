@@ -70,7 +70,14 @@ class _RoomScreenState extends State<RoomScreen> {
             .toList();
 
         return Scaffold(
-          appBar: RoomAppBar(currentRoom: currentRoom, roomId: widget.roomId, name: roomName, isCurrentUserOwner: isCurrentUserOwner),
+          appBar: RoomAppBar(
+            currentRoom: currentRoom,
+            roomId: widget.roomId,
+            name: roomName,
+            isCurrentUserOwner: isCurrentUserOwner,
+            ownerId: owner?.userId ?? currentRoom?.createdBy,
+            ownerUsername: owner?.username,
+          ),
           body: SafeArea(
             child: SingleChildScrollView(
               padding: .symmetric(horizontal: AppSpacing.spaceMd.value, vertical: AppSpacing.spaceSm.value),
