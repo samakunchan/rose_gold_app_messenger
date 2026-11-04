@@ -13,10 +13,19 @@ abstract class ChatRemoteDataSource {
   Future<UserPublicKeyModel?> getPeerPublicKey({required String userId});
   Future<List<String>> getActiveRoomPeerPublicKeys({required String roomId});
   Future<List<String>> getPublicKeysByUserIds({required List<String> userIds});
-  Future<Map<String, dynamic>?> getRoomKeyForUser({required String roomId, required String userId});
+  Future<List<Map<String, dynamic>>> getRoomKeysForUser({required String roomId, required String userId});
+  Future<Map<String, dynamic>?> getLatestRoomKeyForUser({required String roomId, required String userId});
   Future<void> saveRoomKeys({required List<Map<String, dynamic>> roomKeys});
   Future<Map<String, String>> getRoomMembersPublicKeys({required String roomId});
-  Future<List<String>> getExistingRoomKeyUserIds({required String roomId});
+  Future<List<String>> getExistingRoomKeyUserIds({required String roomId, String? fingerprint});
+  Future<({DateTime? joinedAt, DateTime? updatedAt})?> getMemberTimestamps({
+    required String roomId,
+    required String userId,
+  });
+  Future<Map<String, ({String username, String? avatarUrl})>> getProfilesByUserIds({
+    required List<String> userIds,
+  });
+  Future<void> markRoomMessagesAsRead({required String roomId});
   Future<MessageModel> sendMessage({
     required String roomId,
     required String ciphertext,
@@ -30,6 +39,12 @@ abstract class ChatRemoteDataSource {
     required String fileExtension,
   });
   Future<Uint8List> downloadEncryptedMedia({required String storagePath});
+  Future<void> toggleReaction({
+    required String roomId,
+    required String messageId,
+    required String emoji,
+  });
+  Stream<List<Map<String, dynamic>>> getRoomReactionsStream({required String roomId});
 }
 
 class ChatRemoteDataSourceImpl extends ChatRemoteDataSource {
@@ -94,13 +109,37 @@ class ChatRemoteDataSourceImpl extends ChatRemoteDataSource {
   }
 
   @override
-  Future<Map<String, dynamic>?> getRoomKeyForUser({required String roomId, required String userId}) async {
+  Future<List<Map<String, dynamic>>> getRoomKeysForUser({required String roomId, required String userId}) async {
     try {
-      final PostgrestMap? data = await client.from('room_keys').select().eq('room_id', roomId).eq('user_id', userId).maybeSingle();
+      final List<Map<String, dynamic>> data = await client
+          .from('room_keys')
+          .select()
+          .eq('room_id', roomId)
+          .eq('user_id', userId)
+          .order('created_at', ascending: true);
       return data;
     } on Exception catch (e) {
       if (kDebugMode) {
-        print('Erreur getRoomKeyForUser: $e');
+        print('Erreur getRoomKeysForUser: $e');
+      }
+      return <Map<String, dynamic>>[];
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>?> getLatestRoomKeyForUser({required String roomId, required String userId}) async {
+    try {
+      final List<Map<String, dynamic>> data = await client
+          .from('room_keys')
+          .select()
+          .eq('room_id', roomId)
+          .eq('user_id', userId)
+          .order('created_at', ascending: false)
+          .limit(1);
+      return data.isNotEmpty ? data.first : null;
+    } on Exception catch (e) {
+      if (kDebugMode) {
+        print('Erreur getLatestRoomKeyForUser: $e');
       }
       return null;
     }
@@ -110,7 +149,7 @@ class ChatRemoteDataSourceImpl extends ChatRemoteDataSource {
   Future<void> saveRoomKeys({required List<Map<String, dynamic>> roomKeys}) async {
     if (roomKeys.isEmpty) return;
     try {
-      await client.from('room_keys').upsert(roomKeys, onConflict: 'room_id,user_id');
+      await client.from('room_keys').upsert(roomKeys, onConflict: 'room_id,user_id,key_fingerprint');
     } on Exception catch (e) {
       if (kDebugMode) {
         print('Erreur saveRoomKeys: $e');
@@ -142,12 +181,81 @@ class ChatRemoteDataSourceImpl extends ChatRemoteDataSource {
   }
 
   @override
-  Future<List<String>> getExistingRoomKeyUserIds({required String roomId}) async {
+  Future<List<String>> getExistingRoomKeyUserIds({required String roomId, String? fingerprint}) async {
     try {
-      final List<Map<String, dynamic>> data = await client.from('room_keys').select('user_id').eq('room_id', roomId);
+      PostgrestFilterBuilder<List<Map<String, dynamic>>> query = client.from('room_keys').select('user_id').eq('room_id', roomId);
+      if (fingerprint != null) {
+        query = query.eq('key_fingerprint', fingerprint);
+      }
+      final List<Map<String, dynamic>> data = await query;
       return data.map((Map<String, dynamic> row) => row['user_id'] as String).toList();
     } on Exception catch (_) {
       return <String>[];
+    }
+  }
+
+  @override
+  Future<({DateTime? joinedAt, DateTime? updatedAt})?> getMemberTimestamps({
+    required String roomId,
+    required String userId,
+  }) async {
+    try {
+      final PostgrestMap? row = await client
+          .from('room_members')
+          .select('joined_at, updated_at')
+          .eq('room_id', roomId)
+          .eq('user_id', userId)
+          .maybeSingle();
+      if (row == null) return null;
+      final String? joinedRaw = row['joined_at'] as String?;
+      final String? updatedRaw = row['updated_at'] as String?;
+      return (
+        joinedAt: joinedRaw != null ? DateTime.tryParse(joinedRaw)?.toUtc() : null,
+        updatedAt: updatedRaw != null ? DateTime.tryParse(updatedRaw)?.toUtc() : null,
+      );
+    } on Exception catch (_) {
+      return null;
+    }
+  }
+
+  @override
+  Future<Map<String, ({String username, String? avatarUrl})>> getProfilesByUserIds({
+    required List<String> userIds,
+  }) async {
+    if (userIds.isEmpty) {
+      return <String, ({String username, String? avatarUrl})>{};
+    }
+    try {
+      final List<Map<String, dynamic>> rows = await client.from('profiles').select('id, username, user_tag, avatar_url').inFilter('id', userIds);
+
+      final Map<String, ({String username, String? avatarUrl})> result = <String, ({String username, String? avatarUrl})>{};
+      for (final Map<String, dynamic> row in rows) {
+        final String id = row['id'] as String;
+        final String? rawUsername = row['username'] as String?;
+        final String? rawTag = row['user_tag'] as String?;
+        final String username = (rawUsername != null && rawUsername.trim().isNotEmpty)
+            ? rawUsername.trim()
+            : ((rawTag != null && rawTag.trim().isNotEmpty) ? rawTag.trim() : 'Utilisateur');
+        final String? avatarUrl = row['avatar_url'] as String?;
+        result[id] = (username: username, avatarUrl: avatarUrl);
+      }
+      return result;
+    } on Exception catch (_) {
+      return <String, ({String username, String? avatarUrl})>{};
+    }
+  }
+
+  @override
+  Future<void> markRoomMessagesAsRead({required String roomId}) async {
+    try {
+      await client.rpc<void>(
+        'mark_room_messages_as_read',
+        params: <String, dynamic>{'p_room_id': roomId},
+      );
+    } on Exception catch (e) {
+      if (kDebugMode) {
+        print('Erreur markRoomMessagesAsRead: $e');
+      }
     }
   }
 
@@ -212,5 +320,41 @@ class ChatRemoteDataSourceImpl extends ChatRemoteDataSource {
   Future<Uint8List> downloadEncryptedMedia({required String storagePath}) async {
     final Uint8List bytes = await client.storage.from('chat-attachments-encrypted').download(storagePath);
     return bytes;
+  }
+
+  @override
+  Future<void> toggleReaction({
+    required String roomId,
+    required String messageId,
+    required String emoji,
+  }) async {
+    final String? currentUserId = client.auth.currentUser?.id;
+    if (currentUserId == null) {
+      return;
+    }
+
+    final Map<String, dynamic>? existing = await client
+        .from('message_reactions')
+        .select('id')
+        .eq('message_id', messageId)
+        .eq('user_id', currentUserId)
+        .eq('emoji', emoji)
+        .maybeSingle();
+
+    if (existing != null) {
+      await client.from('message_reactions').delete().eq('message_id', messageId).eq('user_id', currentUserId).eq('emoji', emoji);
+    } else {
+      await client.from('message_reactions').insert(<String, dynamic>{
+        'room_id': roomId,
+        'message_id': messageId,
+        'user_id': currentUserId,
+        'emoji': emoji,
+      });
+    }
+  }
+
+  @override
+  Stream<List<Map<String, dynamic>>> getRoomReactionsStream({required String roomId}) {
+    return client.from('message_reactions').stream(primaryKey: <String>['id']).eq('room_id', roomId);
   }
 }

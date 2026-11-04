@@ -69,6 +69,12 @@ class GdprDataSourceImpl implements GdprDataSource {
         .eq('reporter_id', userId)
         .order('created_at', ascending: false);
 
+    final List<Map<String, dynamic>> reactions = await supabaseClient
+        .from('message_reactions')
+        .select('id, room_id, message_id, emoji, created_at')
+        .eq('user_id', userId)
+        .order('created_at', ascending: false);
+
     final SimpleSelectStatement<$LocalMessagesTable, LocalMessage> localQuery = database.select(database.localMessages)
       ..where(($LocalMessagesTable tbl) => tbl.senderId.equals(userId))
       ..orderBy(<OrderClauseGenerator<$LocalMessagesTable>>[
@@ -130,6 +136,7 @@ class GdprDataSourceImpl implements GdprDataSource {
       'rooms_memberships': roomMemberships,
       'room_invitations': formattedInvitations,
       'sent_messages': exportedMessages,
+      'message_reactions': reactions,
       'moderation': <String, dynamic>{
         'blocked_users': blockedUsers,
         'submitted_reports': reports,

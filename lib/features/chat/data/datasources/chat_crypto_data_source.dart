@@ -47,18 +47,33 @@ abstract class ChatCryptoDataSource {
     required String fileKeyBase64,
     required String nonceBase64,
   });
-  Future<SecretKey?> getRoomKey({required String roomId});
-  Future<void> storeRoomKey({required String roomId, required SecretKey roomKey});
-  Future<SecretKey> generateAndStoreRoomKey({required String roomId});
+  Future<SecretKey?> getRoomKey({
+    required String userId,
+    required String roomId,
+    required String fingerprint,
+  });
+  Future<void> storeRoomKey({
+    required String userId,
+    required String roomId,
+    required SecretKey roomKey,
+    required String fingerprint,
+  });
+  Future<SecretKey> generateAndStoreRoomKey({
+    required String userId,
+    required String roomId,
+  });
+  Future<String> getSecretKeyFingerprint(SecretKey key);
   Future<({String encryptedKey, String nonce})> encryptRoomKey({
     required SecretKey roomKey,
     required SecretKey pairwiseKey,
   });
   Future<SecretKey> decryptRoomKey({
+    required String userId,
     required String encryptedKeyBase64,
     required String nonceBase64,
     required SecretKey pairwiseKey,
     required String roomId,
+    String? fingerprint,
   });
 }
 
@@ -380,33 +395,73 @@ class ChatCryptoDataSourceImpl extends ChatCryptoDataSource {
   }
 
   final Map<String, SecretKey> _cachedRoomKeys = <String, SecretKey>{};
-  String _roomKeyStorageKey(String roomId) => 'e2ee_room_key_$roomId';
+  String _roomKeyStorageKey(String userId, String roomId, String fingerprint) {
+    return 'e2ee_room_key_${userId}_${roomId}_$fingerprint';
+  }
 
   @override
-  Future<SecretKey?> getRoomKey({required String roomId}) async {
-    if (_cachedRoomKeys.containsKey(roomId)) {
-      return _cachedRoomKeys[roomId];
+  Future<String> getSecretKeyFingerprint(SecretKey key) async {
+    final List<int> bytes = await key.extractBytes();
+    final Hash hash = await _sha256.hash(bytes);
+    return base64Encode(hash.bytes);
+  }
+
+  @override
+  Future<SecretKey?> getRoomKey({
+    required String userId,
+    required String roomId,
+    required String fingerprint,
+  }) async {
+    if (fingerprint.isEmpty) {
+      return null;
     }
-    final String? stored = await secureStorage.read(key: _roomKeyStorageKey(roomId));
+    final String cacheKey = '$userId:$roomId:$fingerprint';
+    if (_cachedRoomKeys.containsKey(cacheKey)) {
+      return _cachedRoomKeys[cacheKey];
+    }
+    final String? stored = await secureStorage.read(
+      key: _roomKeyStorageKey(userId, roomId, fingerprint),
+    );
     if (stored != null && stored.isNotEmpty) {
       final SecretKey key = SecretKey(base64Decode(stored));
-      _cachedRoomKeys[roomId] = key;
+      _cachedRoomKeys[cacheKey] = key;
       return key;
     }
     return null;
   }
 
   @override
-  Future<void> storeRoomKey({required String roomId, required SecretKey roomKey}) async {
-    _cachedRoomKeys[roomId] = roomKey;
+  Future<void> storeRoomKey({
+    required String userId,
+    required String roomId,
+    required SecretKey roomKey,
+    required String fingerprint,
+  }) async {
+    final String cacheKey = '$userId:$roomId:$fingerprint';
+    _cachedRoomKeys[cacheKey] = roomKey;
+
     final List<int> bytes = await roomKey.extractBytes();
-    await secureStorage.write(key: _roomKeyStorageKey(roomId), value: base64Encode(bytes));
+    final String encoded = base64Encode(bytes);
+
+    await secureStorage.write(
+      key: _roomKeyStorageKey(userId, roomId, fingerprint),
+      value: encoded,
+    );
   }
 
   @override
-  Future<SecretKey> generateAndStoreRoomKey({required String roomId}) async {
+  Future<SecretKey> generateAndStoreRoomKey({
+    required String userId,
+    required String roomId,
+  }) async {
     final SecretKey key = await _cipher.newSecretKey();
-    await storeRoomKey(roomId: roomId, roomKey: key);
+    final String fp = await getSecretKeyFingerprint(key);
+    await storeRoomKey(
+      userId: userId,
+      roomId: roomId,
+      roomKey: key,
+      fingerprint: fp,
+    );
     return key;
   }
 
@@ -429,10 +484,12 @@ class ChatCryptoDataSourceImpl extends ChatCryptoDataSource {
 
   @override
   Future<SecretKey> decryptRoomKey({
+    required String userId,
     required String encryptedKeyBase64,
     required String nonceBase64,
     required SecretKey pairwiseKey,
     required String roomId,
+    String? fingerprint,
   }) async {
     final Uint8List combined = base64Decode(encryptedKeyBase64);
     const int macLength = 16;
@@ -451,7 +508,13 @@ class ChatCryptoDataSourceImpl extends ChatCryptoDataSource {
       secretKey: pairwiseKey,
     );
     final SecretKey roomKey = SecretKey(rawBytes);
-    await storeRoomKey(roomId: roomId, roomKey: roomKey);
+    final String fp = fingerprint ?? await getSecretKeyFingerprint(roomKey);
+    await storeRoomKey(
+      userId: userId,
+      roomId: roomId,
+      roomKey: roomKey,
+      fingerprint: fp,
+    );
     return roomKey;
   }
 }
