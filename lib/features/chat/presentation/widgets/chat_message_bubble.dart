@@ -3,6 +3,7 @@ import 'package:rose_gold_app_messenger/features/chat/presentation/signals/chat_
 import 'package:rose_gold_app_messenger/features/chat/presentation/view_models/message_view_model.dart';
 import 'package:rose_gold_app_messenger/features/chat/presentation/widgets/chat_blocked_message_banner.dart';
 import 'package:rose_gold_app_messenger/features/chat/presentation/widgets/chat_media_attachment_bubble.dart';
+import 'package:rose_gold_app_messenger/features/chat/presentation/widgets/chat_message_content_text.dart';
 import 'package:rose_gold_app_messenger/features/chat/presentation/widgets/chat_reactions_row.dart';
 import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
 import 'package:rose_gold_app_messenger/features/moderation/presentation/signals/moderation_signals.dart';
@@ -142,9 +143,9 @@ class ChatMessageBubble extends StatelessWidget {
                                             ? chatTheme.selectedOutgoingTextHighlightDecoration
                                             : chatTheme.selectedIncomingTextHighlightDecoration)
                                       : null,
-                                  child: Text(
-                                    message.content,
-                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                  child: ChatMessageContentText(
+                                    content: message.content,
+                                    baseStyle: theme.textTheme.bodyMedium?.copyWith(
                                       color: textColor,
                                       fontWeight: isSelected ? .w600 : null,
                                     ),

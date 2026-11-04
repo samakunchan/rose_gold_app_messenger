@@ -342,12 +342,7 @@ class ChatRemoteDataSourceImpl extends ChatRemoteDataSource {
         .maybeSingle();
 
     if (existing != null) {
-      await client
-          .from('message_reactions')
-          .delete()
-          .eq('message_id', messageId)
-          .eq('user_id', currentUserId)
-          .eq('emoji', emoji);
+      await client.from('message_reactions').delete().eq('message_id', messageId).eq('user_id', currentUserId).eq('emoji', emoji);
     } else {
       await client.from('message_reactions').insert(<String, dynamic>{
         'room_id': roomId,
@@ -360,9 +355,6 @@ class ChatRemoteDataSourceImpl extends ChatRemoteDataSource {
 
   @override
   Stream<List<Map<String, dynamic>>> getRoomReactionsStream({required String roomId}) {
-    return client
-        .from('message_reactions')
-        .stream(primaryKey: <String>['id'])
-        .eq('room_id', roomId);
+    return client.from('message_reactions').stream(primaryKey: <String>['id']).eq('room_id', roomId);
   }
 }

@@ -92,21 +92,14 @@ class ChatQuickReactionBar extends StatelessWidget {
             for (final String emoji in _initialEmojis)
               ChatReactionItemButton(
                 emoji: emoji,
-                onTap: () {
-                  chatSignals.toggleReaction(
-                    messageId: messageId,
-                    emoji: emoji,
-                  );
+                onTap: () async {
+                  await chatSignals.toggleReaction(messageId: messageId, emoji: emoji);
                 },
               ),
             ChatReactionItemButton(
               icon: Icons.add_rounded,
-              onTap: () {
-                ChatReactionPickerBottomSheet.show(
-                  context,
-                  emojis: _allEmojis,
-                  messageId: messageId,
-                );
+              onTap: () async {
+                await ChatReactionPickerBottomSheet.show(context, emojis: _allEmojis, messageId: messageId);
               },
             ),
           ],

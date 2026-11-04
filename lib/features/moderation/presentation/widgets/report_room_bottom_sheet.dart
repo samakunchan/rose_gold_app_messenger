@@ -152,9 +152,7 @@ class _ReportRoomBottomSheetState extends State<ReportRoomBottomSheet> {
                       ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
                       : const Icon(Icons.flag_outlined, size: 18),
                   label: Text(
-                    isLoading
-                        ? 'Envoi en cours...'
-                        : (shouldLeave ? 'Signaler et quitter le salon' : 'Envoyer le signalement'),
+                    isLoading ? 'Envoi en cours...' : (shouldLeave ? 'Signaler et quitter le salon' : 'Envoyer le signalement'),
                   ),
                 ),
               ],

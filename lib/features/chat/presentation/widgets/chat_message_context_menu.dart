@@ -73,14 +73,10 @@ class ChatMessageContextMenu extends StatelessWidget {
                                   icon: Icons.flag_outlined,
                                   label: 'Signaler',
                                   isDestructive: true,
-                                  onTap: () {
+                                  onTap: () async {
                                     final String roomId = chatSignals.currentRoomId.value ?? '';
                                     chatSignals.clearSelectedMessage();
-                                    ReportMessageBottomSheet.show(
-                                      context,
-                                      message: selectedMessage,
-                                      roomId: roomId,
-                                    );
+                                    await ReportMessageBottomSheet.show(context, message: selectedMessage, roomId: roomId);
                                   },
                                 ),
                               const Divider(height: 8),

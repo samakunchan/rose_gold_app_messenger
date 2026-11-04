@@ -37,13 +37,8 @@ class ChatReactionPickerBottomSheet extends StatelessWidget {
     final ChatSignals chatSignals = kGetIt<ChatSignals>();
 
     return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.sizeOf(context).height * 0.55,
-      ),
-      padding: .symmetric(
-        horizontal: AppSpacing.spaceLg.value,
-        vertical: AppSpacing.spaceMd.value,
-      ),
+      constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.55),
+      padding: .symmetric(horizontal: AppSpacing.spaceLg.value, vertical: AppSpacing.spaceMd.value),
       decoration: BoxDecoration(
         color: chatTheme.incomingBubbleColor,
         borderRadius: .only(
@@ -76,10 +71,7 @@ class ChatReactionPickerBottomSheet extends StatelessWidget {
           ),
           Text(
             'Toutes les réactions',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: .bold,
-              color: theme.colorScheme.onSurface,
-            ),
+            style: theme.textTheme.titleMedium?.copyWith(fontWeight: .bold, color: theme.colorScheme.onSurface),
           ),
           Expanded(
             child: GridView.builder(
@@ -95,12 +87,9 @@ class ChatReactionPickerBottomSheet extends StatelessWidget {
                 return Center(
                   child: ChatReactionItemButton(
                     emoji: emoji,
-                    onTap: () {
+                    onTap: () async {
                       Navigator.of(context).pop();
-                      chatSignals.toggleReaction(
-                        messageId: messageId,
-                        emoji: emoji,
-                      );
+                      await chatSignals.toggleReaction(messageId: messageId, emoji: emoji);
                     },
                   ),
                 );

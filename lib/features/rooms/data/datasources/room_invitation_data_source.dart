@@ -71,13 +71,8 @@ class RoomInvitationDataSourceImpl extends RoomInvitationDataSource {
       }
 
       try {
-        final List<Map<String, dynamic>> blockedRows = await client
-            .from('blocked_users')
-            .select('blocked_id')
-            .eq('blocker_id', currentUserId);
-        final Set<String> blockedUserIds = blockedRows
-            .map((Map<String, dynamic> row) => row['blocked_id'] as String)
-            .toSet();
+        final List<Map<String, dynamic>> blockedRows = await client.from('blocked_users').select('blocked_id').eq('blocker_id', currentUserId);
+        final Set<String> blockedUserIds = blockedRows.map((Map<String, dynamic> row) => row['blocked_id'] as String).toSet();
 
         final List<Map<String, dynamic>> response = await client
             .from('room_invitations')

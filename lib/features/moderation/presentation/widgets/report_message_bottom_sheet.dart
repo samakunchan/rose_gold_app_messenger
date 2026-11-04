@@ -139,9 +139,7 @@ class _ReportMessageBottomSheetState extends State<ReportMessageBottomSheet> {
                     ),
                   ),
                   Text(
-                    widget.message.content.isEmpty && widget.message.hasMedia
-                        ? '[Image jointe]'
-                        : widget.message.content,
+                    widget.message.content.isEmpty && widget.message.hasMedia ? '[Image jointe]' : widget.message.content,
                     maxLines: 2,
                     overflow: .ellipsis,
                     style: theme.textTheme.bodySmall?.copyWith(
@@ -172,14 +170,10 @@ class _ReportMessageBottomSheetState extends State<ReportMessageBottomSheet> {
                     vertical: AppSpacing.spaceSm.value,
                   ),
                   decoration: BoxDecoration(
-                    color: isSelected
-                        ? theme.colorScheme.primaryContainer.withValues(alpha: 0.4)
-                        : Colors.transparent,
+                    color: isSelected ? theme.colorScheme.primaryContainer.withValues(alpha: 0.4) : Colors.transparent,
                     borderRadius: .circular(AppRadius.md.value),
                     border: .all(
-                      color: isSelected
-                          ? theme.colorScheme.primary
-                          : theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                      color: isSelected ? theme.colorScheme.primary : theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
                       width: isSelected ? 1.5 : 1.0,
                     ),
                   ),
@@ -234,9 +228,7 @@ class _ReportMessageBottomSheetState extends State<ReportMessageBottomSheet> {
               builder: (_) {
                 final bool isSubmitting = moderationSignals.isLoading.value;
                 return ElevatedButton(
-                  onPressed: _selectedReason == null || isSubmitting
-                      ? null
-                      : () => _submitReport(context, moderationSignals),
+                  onPressed: _selectedReason == null || isSubmitting ? null : () => _submitReport(context, moderationSignals),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: theme.colorScheme.error,
                     foregroundColor: theme.colorScheme.onError,

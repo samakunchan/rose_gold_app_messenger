@@ -6,10 +6,7 @@ import 'package:rose_gold_app_messenger/features/core/di/injection_container.dar
 import 'package:rose_gold_app_messenger/themes/themes_all_export.dart';
 
 class ChatReactionsRow extends StatelessWidget {
-  const new({
-    required this.message,
-    super.key,
-  });
+  const new({required this.message, super.key});
 
   final MessageViewModel message;
 
@@ -36,27 +33,17 @@ class ChatReactionsRow extends StatelessWidget {
             type: .transparency,
             child: InkWell(
               borderRadius: .circular(AppRadius.full.value),
-              onTap: () {
-                chatSignals.toggleReaction(
-                  messageId: message.id,
-                  emoji: group.emoji,
-                );
+              onTap: () async {
+                await chatSignals.toggleReaction(messageId: message.id, emoji: group.emoji);
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
-                padding: .symmetric(
-                  horizontal: AppSpacing.spaceSm.value,
-                  vertical: AppSpacing.space2xs.value,
-                ),
+                padding: .symmetric(horizontal: AppSpacing.spaceSm.value, vertical: AppSpacing.space2xs.value),
                 decoration: BoxDecoration(
-                  color: hasReacted
-                      ? chatTheme.waveformBackgroundColor
-                      : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+                  color: hasReacted ? chatTheme.waveformBackgroundColor : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
                   borderRadius: .circular(AppRadius.full.value),
                   border: .all(
-                    color: hasReacted
-                        ? chatTheme.onlineRingColor
-                        : theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
+                    color: hasReacted ? chatTheme.onlineRingColor : theme.colorScheme.outlineVariant.withValues(alpha: 0.35),
                     width: hasReacted ? 1.2 : 0.8,
                   ),
                 ),
@@ -64,17 +51,12 @@ class ChatReactionsRow extends StatelessWidget {
                   mainAxisSize: .min,
                   spacing: 4,
                   children: <Widget>[
-                    Text(
-                      group.emoji,
-                      style: theme.textTheme.labelMedium?.copyWith(fontSize: 14),
-                    ),
+                    Text(group.emoji, style: theme.textTheme.labelMedium?.copyWith(fontSize: 20)),
                     Text(
                       '${group.count}',
                       style: theme.textTheme.labelSmall?.copyWith(
                         fontWeight: hasReacted ? .bold : .normal,
-                        color: hasReacted
-                            ? theme.colorScheme.primary
-                            : theme.colorScheme.onSurfaceVariant,
+                        color: hasReacted ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],

@@ -153,11 +153,7 @@ class ModerationRemoteDataSourceImpl implements ModerationRemoteDataSource {
 
     String targetUserId = reportedUserId;
     if (targetUserId.isEmpty) {
-      final PostgrestMap? roomRow = await client
-          .from('rooms')
-          .select('created_by')
-          .eq('id', roomId)
-          .maybeSingle();
+      final PostgrestMap? roomRow = await client.from('rooms').select('created_by').eq('id', roomId).maybeSingle();
       targetUserId = (roomRow?['created_by'] as String?) ?? currentUserId;
     }
 
