@@ -20,6 +20,14 @@ abstract class ModerationRemoteDataSource {
     String? details,
     bool blockOwner = false,
   });
+  Future<bool> reportMessage({
+    required String reportedUserId,
+    required String roomId,
+    required String messageId,
+    required String reason,
+    String? details,
+    bool blockUser = false,
+  });
 }
 
 class ModerationRemoteDataSourceImpl implements ModerationRemoteDataSource {
@@ -169,6 +177,36 @@ class ModerationRemoteDataSourceImpl implements ModerationRemoteDataSource {
 
     if (blockOwner && targetUserId != currentUserId) {
       await blockUser(blockedUserId: targetUserId);
+    }
+
+    return true;
+  }
+
+  @override
+  Future<bool> reportMessage({
+    required String reportedUserId,
+    required String roomId,
+    required String messageId,
+    required String reason,
+    String? details,
+    bool blockUser = false,
+  }) async {
+    final String? currentUserId = client.auth.currentUser?.id;
+    if (currentUserId == null) {
+      return false;
+    }
+
+    await client.from('reports').insert(<String, dynamic>{
+      'reporter_id': currentUserId,
+      'reported_user_id': reportedUserId,
+      'room_id': roomId,
+      'message_id': messageId,
+      'reason': reason,
+      if (details != null && details.trim().isNotEmpty) 'details': details.trim(),
+    });
+
+    if (blockUser && reportedUserId != currentUserId) {
+      await this.blockUser(blockedUserId: reportedUserId);
     }
 
     return true;

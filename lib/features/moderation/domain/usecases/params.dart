@@ -57,3 +57,24 @@ class ReportRoomParams extends Equatable {
   @override
   List<Object?> get props => <Object?>[reportedUserId, roomId, reason, details, blockOwner];
 }
+
+class ReportMessageParams extends Equatable {
+  const new({
+    required this.reportedUserId,
+    required this.roomId,
+    required this.messageId,
+    required this.reason,
+    this.details,
+    this.blockUser = false,
+  });
+
+  final String reportedUserId;
+  final String roomId;
+  final String messageId;
+  final String reason;
+  final String? details;
+  final bool blockUser;
+
+  @override
+  List<Object?> get props => <Object?>[reportedUserId, roomId, messageId, reason, details, blockUser];
+}

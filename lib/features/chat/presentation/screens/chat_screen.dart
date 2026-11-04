@@ -8,6 +8,7 @@ import 'package:rose_gold_app_messenger/features/chat/presentation/widgets/chat_
 import 'package:rose_gold_app_messenger/features/chat/presentation/widgets/chat_message_context_menu.dart';
 import 'package:rose_gold_app_messenger/features/chat/presentation/widgets/chat_messages_list.dart';
 import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
+import 'package:rose_gold_app_messenger/features/moderation/presentation/signals/moderation_signals.dart';
 import 'package:rose_gold_app_messenger/themes/themes_all_export.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
@@ -30,6 +31,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _chatSignals = kGetIt<ChatSignals>();
+    unawaited(kGetIt<ModerationSignals>().fetchBlockedUsers());
     unawaited(_chatSignals.initializeKeys());
     _chatSignals.subscribeToRoom(roomId: widget.roomId, peerPublicKeyBase64: widget.peerPublicKeyBase64);
   }

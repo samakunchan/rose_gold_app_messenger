@@ -4,6 +4,7 @@ import 'package:rose_gold_app_messenger/features/chat/presentation/view_models/m
 import 'package:rose_gold_app_messenger/features/chat/presentation/widgets/chat_context_menu_action_button.dart';
 import 'package:rose_gold_app_messenger/features/chat/presentation/widgets/chat_quick_reaction_bar.dart';
 import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
+import 'package:rose_gold_app_messenger/features/moderation/presentation/widgets/report_message_bottom_sheet.dart';
 import 'package:rose_gold_app_messenger/themes/themes_all_export.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 
@@ -72,7 +73,15 @@ class ChatMessageContextMenu extends StatelessWidget {
                                   icon: Icons.flag_outlined,
                                   label: 'Signaler',
                                   isDestructive: true,
-                                  onTap: () {},
+                                  onTap: () {
+                                    final String roomId = chatSignals.currentRoomId.value ?? '';
+                                    chatSignals.clearSelectedMessage();
+                                    ReportMessageBottomSheet.show(
+                                      context,
+                                      message: selectedMessage,
+                                      roomId: roomId,
+                                    );
+                                  },
                                 ),
                               const Divider(height: 8),
                               ChatContextMenuActionButton(
@@ -86,7 +95,7 @@ class ChatMessageContextMenu extends StatelessWidget {
                       ),
                     ),
 
-                    /// Barre d'emotes en bas de l'écran pour tous les messages (y compris les siens)
+                    /// Barre d'emotes en bas de l'écran pour tous les messages
                     Align(
                       alignment: .bottomCenter,
                       child: Padding(

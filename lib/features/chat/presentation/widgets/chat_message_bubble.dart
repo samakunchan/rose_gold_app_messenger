@@ -1,8 +1,10 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:rose_gold_app_messenger/features/chat/presentation/signals/chat_signals.dart';
 import 'package:rose_gold_app_messenger/features/chat/presentation/view_models/message_view_model.dart';
+import 'package:rose_gold_app_messenger/features/chat/presentation/widgets/chat_blocked_message_banner.dart';
 import 'package:rose_gold_app_messenger/features/chat/presentation/widgets/chat_media_attachment_bubble.dart';
 import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
+import 'package:rose_gold_app_messenger/features/moderation/presentation/signals/moderation_signals.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/widgets/monogram_user.dart';
 import 'package:rose_gold_app_messenger/themes/themes_all_export.dart';
 import 'package:signals_flutter/signals_flutter.dart';
@@ -17,6 +19,7 @@ class ChatMessageBubble extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     final ChatThemeExtension chatTheme = theme.extension<ChatThemeExtension>() ?? .light;
     final ChatSignals chatSignals = kGetIt<ChatSignals>();
+    final ModerationSignals moderationSignals = kGetIt<ModerationSignals>();
     final bool isMe = message.isMe;
 
     final Color textColor = isMe ? chatTheme.outgoingTextColor : chatTheme.incomingTextColor;
@@ -25,6 +28,14 @@ class ChatMessageBubble extends StatelessWidget {
     return SignalBuilder(
       builder: (_) {
         final bool isSelected = chatSignals.selectedMessageId.value == message.id;
+
+        // Vérifie si l'auteur du message est bloqué
+        final bool isSenderBlocked = !isMe && moderationSignals.isUserBlocked(message.senderId);
+        final bool isRevealed = chatSignals.revealedBlockedMessageIds.value.contains(message.id);
+
+        if (isSenderBlocked && !isRevealed) {
+          return ChatBlockedMessageBanner(message: message);
+        }
 
         final BoxDecoration bubbleDecoration = isMe
             ? (isSelected
@@ -68,7 +79,7 @@ class ChatMessageBubble extends StatelessWidget {
                         mainAxisSize: .min,
                         spacing: AppSpacing.spaceXs.value,
                         children: <Widget>[
-                          /// Expediteur
+                          /// Expediteur (+ Bouton Masquer si utilisateur bloqué et message révélé)
                           Row(
                             mainAxisSize: .min,
                             spacing: AppSpacing.spaceXs.value,
@@ -81,6 +92,34 @@ class ChatMessageBubble extends StatelessWidget {
                                 '- ${message.createdAt}',
                                 style: theme.textTheme.labelSmall?.copyWith(color: textColor.withValues(alpha: 0.7)),
                               ),
+                              if (isSenderBlocked && isRevealed) ...<Widget>[
+                                const SizedBox(width: 4),
+                                InkWell(
+                                  borderRadius: .circular(AppRadius.xs.value),
+                                  onTap: () => chatSignals.hideBlockedMessage(message.id),
+                                  child: Padding(
+                                    padding: const .symmetric(horizontal: 4, vertical: 2),
+                                    child: Row(
+                                      mainAxisSize: .min,
+                                      spacing: 2,
+                                      children: <Widget>[
+                                        Icon(
+                                          Icons.visibility_off_outlined,
+                                          size: 13,
+                                          color: textColor.withValues(alpha: 0.8),
+                                        ),
+                                        Text(
+                                          'Masquer',
+                                          style: theme.textTheme.labelSmall?.copyWith(
+                                            color: textColor.withValues(alpha: 0.8),
+                                            decoration: TextDecoration.underline,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
 

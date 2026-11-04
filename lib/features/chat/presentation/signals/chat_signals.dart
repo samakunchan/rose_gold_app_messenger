@@ -50,6 +50,7 @@ class ChatSignals {
   final Signal<bool> isTyping = .new(false);
   final Signal<String?> currentRoomId = .new(null);
   final Signal<String?> selectedMessageId = signal<String?>(null);
+  final Signal<Set<String>> revealedBlockedMessageIds = signal<Set<String>>(<String>{});
   final Signal<String?> currentPassphrase = signal<String?>(null);
   final Signal<List<MessageViewModel>> messages = signal<List<MessageViewModel>>(<MessageViewModel>[]);
   final Signal<List<MessageViewModel>> searchResults = signal<List<MessageViewModel>>(<MessageViewModel>[]);
@@ -93,6 +94,15 @@ class ChatSignals {
     if (selectedMessageId.value != null) {
       selectedMessageId.value = null;
     }
+  }
+
+  void revealBlockedMessage(String messageId) {
+    revealedBlockedMessageIds.value = <String>{...revealedBlockedMessageIds.value, messageId};
+  }
+
+  void hideBlockedMessage(String messageId) {
+    final Set<String> updated = Set<String>.from(revealedBlockedMessageIds.value)..remove(messageId);
+    revealedBlockedMessageIds.value = updated;
   }
 
   void startListeningToUnreadMessages() {
@@ -585,6 +595,7 @@ class ChatSignals {
     _messagesSubscription = null;
     currentRoomId.value = null;
     selectedMessageId.value = null;
+    revealedBlockedMessageIds.value = <String>{};
     messages.value = <MessageViewModel>[];
     _decryptedMediaCache.clear();
     clearSearch();
