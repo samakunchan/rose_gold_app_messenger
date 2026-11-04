@@ -103,7 +103,7 @@ class ChatMessageContextMenu extends StatelessWidget {
                           horizontal: AppSpacing.spaceMd.value,
                           vertical: AppSpacing.spaceMd.value,
                         ),
-                        child: const ChatQuickReactionBar(),
+                        child: ChatQuickReactionBar(messageId: selectedMessage.id),
                       ),
                     ),
                   ],

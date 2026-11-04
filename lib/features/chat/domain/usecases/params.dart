@@ -65,3 +65,18 @@ class SearchMessagesParams extends Equatable {
   @override
   List<Object?> get props => <Object?>[query, roomId];
 }
+
+class ToggleMessageReactionParams extends Equatable {
+  const new({
+    required this.roomId,
+    required this.messageId,
+    required this.emoji,
+  });
+
+  final String roomId;
+  final String messageId;
+  final String emoji;
+
+  @override
+  List<Object?> get props => <Object?>[roomId, messageId, emoji];
+}

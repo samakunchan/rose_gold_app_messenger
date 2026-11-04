@@ -779,4 +779,26 @@ class ChatRepositoryImpl extends ChatRepository {
       return const Left<Failure, void>(CryptoFailure());
     }
   }
+
+  @override
+  Future<Either<Failure, void>> toggleReaction({required ToggleMessageReactionParams params}) async {
+    try {
+      await remoteDataSource.toggleReaction(
+        roomId: params.roomId,
+        messageId: params.messageId,
+        emoji: params.emoji,
+      );
+      return const Right<Failure, void>(null);
+    } on Exception catch (e, stack) {
+      if (kDebugMode) {
+        print('Erreur toggleReaction: $e\n$stack');
+      }
+      return const Left<Failure, void>(ServerFailure());
+    }
+  }
+
+  @override
+  Stream<List<Map<String, dynamic>>> getRoomReactionsStream({required String roomId}) {
+    return remoteDataSource.getRoomReactionsStream(roomId: roomId);
+  }
 }

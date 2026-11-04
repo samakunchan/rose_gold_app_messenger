@@ -1,10 +1,17 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:rose_gold_app_messenger/features/chat/presentation/signals/chat_signals.dart';
 import 'package:rose_gold_app_messenger/features/chat/presentation/widgets/chat_reaction_item_button.dart';
 import 'package:rose_gold_app_messenger/features/chat/presentation/widgets/chat_reaction_picker_bottom_sheet.dart';
+import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
 import 'package:rose_gold_app_messenger/themes/themes_all_export.dart';
 
 class ChatQuickReactionBar extends StatelessWidget {
-  const new({super.key});
+  const new({
+    required this.messageId,
+    super.key,
+  });
+
+  final String messageId;
 
   static const List<String> _initialEmojis = <String>[
     '❤️',
@@ -56,6 +63,7 @@ class ChatQuickReactionBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final ChatThemeExtension chatTheme = theme.extension<ChatThemeExtension>() ?? .light;
+    final ChatSignals chatSignals = kGetIt<ChatSignals>();
 
     return Container(
       width: .infinity,
@@ -84,12 +92,21 @@ class ChatQuickReactionBar extends StatelessWidget {
             for (final String emoji in _initialEmojis)
               ChatReactionItemButton(
                 emoji: emoji,
-                onTap: () {},
+                onTap: () {
+                  chatSignals.toggleReaction(
+                    messageId: messageId,
+                    emoji: emoji,
+                  );
+                },
               ),
             ChatReactionItemButton(
               icon: Icons.add_rounded,
               onTap: () {
-                ChatReactionPickerBottomSheet.show(context, emojis: _allEmojis);
+                ChatReactionPickerBottomSheet.show(
+                  context,
+                  emojis: _allEmojis,
+                  messageId: messageId,
+                );
               },
             ),
           ],

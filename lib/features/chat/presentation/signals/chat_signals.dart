@@ -4,14 +4,17 @@ import 'package:dart_either/dart_either.dart';
 import 'package:flutter/foundation.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/entities/encrypted_media_attachment.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/entities/message_entity.dart';
+import 'package:rose_gold_app_messenger/features/chat/domain/entities/message_reaction_group_entity.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/download_and_decrypt_media_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/get_chat_messages_stream_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/get_passphrase_use_case.dart';
+import 'package:rose_gold_app_messenger/features/chat/domain/usecases/get_room_reactions_stream_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/initialize_e2ee_keys_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/params.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/regenerate_passphrase_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/search_messages_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/send_encrypted_message_use_case.dart';
+import 'package:rose_gold_app_messenger/features/chat/domain/usecases/toggle_message_reaction_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/update_passphrase_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/presentation/view_models/message_view_model.dart';
 import 'package:rose_gold_app_messenger/features/core/errors/failures.dart';
@@ -28,6 +31,8 @@ class ChatSignals {
     required this.updatePassphraseUseCase,
     required this.regeneratePassphraseUseCase,
     required this.downloadAndDecryptMediaUseCase,
+    required this.toggleMessageReactionUseCase,
+    required this.getRoomReactionsStreamUseCase,
     required this.supabaseClient,
   });
 
@@ -39,6 +44,8 @@ class ChatSignals {
   final UpdatePassphraseUseCase updatePassphraseUseCase;
   final RegeneratePassphraseUseCase regeneratePassphraseUseCase;
   final DownloadAndDecryptMediaUseCase downloadAndDecryptMediaUseCase;
+  final ToggleMessageReactionUseCase toggleMessageReactionUseCase;
+  final GetRoomReactionsStreamUseCase getRoomReactionsStreamUseCase;
   final SupabaseClient supabaseClient;
 
   static const Duration _typingMaxDuration = Duration(minutes: 1);
@@ -62,7 +69,11 @@ class ChatSignals {
   final Set<String> _baselineSeenMessageIds = <String>{};
   bool _hasCapturedBaselineWithoutReadBy = false;
 
+  List<MessageEntity> _rawEntities = <MessageEntity>[];
+  List<Map<String, dynamic>> _rawReactionRows = <Map<String, dynamic>>[];
+
   StreamSubscription<Either<Failure, List<MessageEntity>>>? _messagesSubscription;
+  StreamSubscription<List<Map<String, dynamic>>>? _reactionsSubscription;
   StreamSubscription<List<Map<String, dynamic>>>? _unreadMessagesSubscription;
   String? _unreadListenerUserId;
   RealtimeChannel? _typingChannel;
@@ -103,6 +114,24 @@ class ChatSignals {
   void hideBlockedMessage(String messageId) {
     final Set<String> updated = Set<String>.from(revealedBlockedMessageIds.value)..remove(messageId);
     revealedBlockedMessageIds.value = updated;
+  }
+
+  Future<void> toggleReaction({
+    required String messageId,
+    required String emoji,
+  }) async {
+    final String? roomId = currentRoomId.value;
+    if (roomId == null) {
+      return;
+    }
+    clearSelectedMessage();
+    await toggleMessageReactionUseCase(
+      ToggleMessageReactionParams(
+        roomId: roomId,
+        messageId: messageId,
+        emoji: emoji,
+      ),
+    );
   }
 
   void startListeningToUnreadMessages() {
@@ -287,12 +316,20 @@ class ChatSignals {
 
   void subscribeToRoom({required String roomId, String? peerPublicKeyBase64}) {
     unawaited(_messagesSubscription?.cancel());
+    unawaited(_reactionsSubscription?.cancel());
+    _rawEntities = <MessageEntity>[];
+    _rawReactionRows = <Map<String, dynamic>>[];
     currentRoomId.value = roomId;
     isLoading.value = true;
     _markRoomAsReadLocally(roomId);
 
     final String currentUserId = supabaseClient.auth.currentUser?.id ?? '';
     unawaited(_subscribeToTypingChannel(roomId: roomId));
+
+    _reactionsSubscription = getRoomReactionsStreamUseCase(roomId: roomId).listen((List<Map<String, dynamic>> rows) {
+      _rawReactionRows = rows;
+      _rebuildMessagesWithReactions(currentUserId: currentUserId);
+    });
 
     _messagesSubscription =
         getMessagesStreamUseCase(
@@ -306,12 +343,64 @@ class ChatSignals {
               }
             },
             ifRight: (List<MessageEntity> entities) {
+              _rawEntities = entities;
               _markRoomAsReadLocally(roomId, entities.map((MessageEntity e) => e.id));
-              messages.value = entities.map((MessageEntity e) => MessageViewModel(e, currentUserId: currentUserId)).toList();
+              _rebuildMessagesWithReactions(currentUserId: currentUserId);
               isLoading.value = false;
             },
           );
         });
+  }
+
+  void _rebuildMessagesWithReactions({required String currentUserId}) {
+    // Regroupe les réactions par message_id puis par emoji
+    final Map<String, Map<String, List<String>>> reactionsByMessage = <String, Map<String, List<String>>>{};
+    for (final Map<String, dynamic> row in _rawReactionRows) {
+      final String? msgId = row['message_id'] as String?;
+      final String? emoji = row['emoji'] as String?;
+      final String? uId = row['user_id'] as String?;
+      if (msgId == null || emoji == null || uId == null) {
+        continue;
+      }
+      reactionsByMessage.putIfAbsent(msgId, () => <String, List<String>>{});
+      reactionsByMessage[msgId]!.putIfAbsent(emoji, () => <String>[]);
+      reactionsByMessage[msgId]![emoji]!.add(uId);
+    }
+
+    messages.value = _rawEntities.map((MessageEntity e) {
+      final Map<String, List<String>>? msgReactions = reactionsByMessage[e.id];
+      final List<MessageReactionGroupEntity> groups = <MessageReactionGroupEntity>[];
+
+      if (msgReactions != null) {
+        msgReactions.forEach((String emoji, List<String> userIds) {
+          groups.add(
+            MessageReactionGroupEntity(
+              emoji: emoji,
+              count: userIds.length,
+              userIds: userIds,
+              hasReacted: userIds.contains(currentUserId),
+            ),
+          );
+        });
+      }
+
+      final MessageEntity enrichedEntity = MessageEntity(
+        id: e.id,
+        roomId: e.roomId,
+        senderId: e.senderId,
+        decryptedContent: e.decryptedContent,
+        keyFingerprint: e.keyFingerprint,
+        createdAt: e.createdAt,
+        senderUsername: e.senderUsername,
+        senderAvatarUrl: e.senderAvatarUrl,
+        mediaUrl: e.mediaUrl,
+        attachment: e.attachment,
+        readBy: e.readBy,
+        reactions: groups,
+      );
+
+      return MessageViewModel(enrichedEntity, currentUserId: currentUserId);
+    }).toList();
   }
 
   Future<void> _subscribeToTypingChannel({required String roomId}) async {
@@ -593,6 +682,8 @@ class ChatSignals {
     await _leaveTypingChannel();
     await _messagesSubscription?.cancel();
     _messagesSubscription = null;
+    await _reactionsSubscription?.cancel();
+    _reactionsSubscription = null;
     currentRoomId.value = null;
     selectedMessageId.value = null;
     revealedBlockedMessageIds.value = <String>{};

@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/entities/encrypted_media_attachment.dart';
+import 'package:rose_gold_app_messenger/features/chat/domain/entities/message_reaction_group_entity.dart';
 
 class MessageEntity extends Equatable {
   const new({
@@ -14,6 +15,7 @@ class MessageEntity extends Equatable {
     this.mediaUrl,
     this.attachment,
     this.readBy = const <String>[],
+    this.reactions = const <MessageReactionGroupEntity>[],
   });
 
   final String id;
@@ -27,6 +29,7 @@ class MessageEntity extends Equatable {
   final String? mediaUrl;
   final EncryptedMediaAttachment? attachment;
   final List<String> readBy;
+  final List<MessageReactionGroupEntity> reactions;
 
   @override
   List<Object?> get props => <Object?>[
@@ -41,5 +44,6 @@ class MessageEntity extends Equatable {
     mediaUrl,
     attachment,
     readBy,
+    reactions,
   ];
 }

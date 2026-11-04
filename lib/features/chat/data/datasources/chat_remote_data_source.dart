@@ -39,6 +39,12 @@ abstract class ChatRemoteDataSource {
     required String fileExtension,
   });
   Future<Uint8List> downloadEncryptedMedia({required String storagePath});
+  Future<void> toggleReaction({
+    required String roomId,
+    required String messageId,
+    required String emoji,
+  });
+  Stream<List<Map<String, dynamic>>> getRoomReactionsStream({required String roomId});
 }
 
 class ChatRemoteDataSourceImpl extends ChatRemoteDataSource {
@@ -314,5 +320,49 @@ class ChatRemoteDataSourceImpl extends ChatRemoteDataSource {
   Future<Uint8List> downloadEncryptedMedia({required String storagePath}) async {
     final Uint8List bytes = await client.storage.from('chat-attachments-encrypted').download(storagePath);
     return bytes;
+  }
+
+  @override
+  Future<void> toggleReaction({
+    required String roomId,
+    required String messageId,
+    required String emoji,
+  }) async {
+    final String? currentUserId = client.auth.currentUser?.id;
+    if (currentUserId == null) {
+      return;
+    }
+
+    final Map<String, dynamic>? existing = await client
+        .from('message_reactions')
+        .select('id')
+        .eq('message_id', messageId)
+        .eq('user_id', currentUserId)
+        .eq('emoji', emoji)
+        .maybeSingle();
+
+    if (existing != null) {
+      await client
+          .from('message_reactions')
+          .delete()
+          .eq('message_id', messageId)
+          .eq('user_id', currentUserId)
+          .eq('emoji', emoji);
+    } else {
+      await client.from('message_reactions').insert(<String, dynamic>{
+        'room_id': roomId,
+        'message_id': messageId,
+        'user_id': currentUserId,
+        'emoji': emoji,
+      });
+    }
+  }
+
+  @override
+  Stream<List<Map<String, dynamic>>> getRoomReactionsStream({required String roomId}) {
+    return client
+        .from('message_reactions')
+        .stream(primaryKey: <String>['id'])
+        .eq('room_id', roomId);
   }
 }

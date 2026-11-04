@@ -21,4 +21,6 @@ abstract class ChatRepository {
     required String roomId,
     required String newMemberId,
   });
+  Future<Either<Failure, void>> toggleReaction({required ToggleMessageReactionParams params});
+  Stream<List<Map<String, dynamic>>> getRoomReactionsStream({required String roomId});
 }
