@@ -14,6 +14,7 @@ abstract class MessageModel with _$MessageModel {
     @JsonKey(name: 'key_fingerprint') required String keyFingerprint,
     @JsonKey(name: 'created_at') required String createdAt,
     @JsonKey(name: 'media_url') String? mediaUrl,
+    @JsonKey(name: 'read_by') @Default(<String>[]) List<String> readBy,
   }) = _MessageModel;
 
   factory fromJson(Map<String, dynamic> json) => _$MessageModelFromJson(json);

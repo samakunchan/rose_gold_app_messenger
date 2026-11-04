@@ -17,4 +17,10 @@ abstract class ChatRepository {
   Future<Either<Failure, void>> updatePassphrase({required String newPassphrase});
   Future<Either<Failure, String>> regenerateRandomPassphrase();
   Future<Either<Failure, Uint8List>> downloadAndDecryptMedia({required EncryptedMediaAttachment attachment});
+  Future<Either<Failure, void>> rotateRoomKeyForNewMember({
+    required String roomId,
+    required String newMemberId,
+  });
+  Future<Either<Failure, void>> toggleReaction({required ToggleMessageReactionParams params});
+  Stream<List<Map<String, dynamic>>> getRoomReactionsStream({required String roomId});
 }

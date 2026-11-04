@@ -1,13 +1,18 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:rose_gold_app_messenger/features/chat/presentation/signals/chat_signals.dart';
 import 'package:rose_gold_app_messenger/features/chat/presentation/view_models/message_view_model.dart';
+import 'package:rose_gold_app_messenger/features/chat/presentation/widgets/chat_blocked_message_banner.dart';
 import 'package:rose_gold_app_messenger/features/chat/presentation/widgets/chat_media_attachment_bubble.dart';
+import 'package:rose_gold_app_messenger/features/chat/presentation/widgets/chat_message_content_text.dart';
+import 'package:rose_gold_app_messenger/features/chat/presentation/widgets/chat_reactions_row.dart';
+import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
+import 'package:rose_gold_app_messenger/features/moderation/presentation/signals/moderation_signals.dart';
+import 'package:rose_gold_app_messenger/features/rooms/presentation/widgets/monogram_user.dart';
 import 'package:rose_gold_app_messenger/themes/themes_all_export.dart';
+import 'package:signals_flutter/signals_flutter.dart';
 
 class ChatMessageBubble extends StatelessWidget {
-  const new({
-    required this.message,
-    super.key,
-  });
+  const new({required this.message, super.key});
 
   final MessageViewModel message;
 
@@ -15,57 +20,166 @@ class ChatMessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final ChatThemeExtension chatTheme = theme.extension<ChatThemeExtension>() ?? .light;
+    final ChatSignals chatSignals = kGetIt<ChatSignals>();
+    final ModerationSignals moderationSignals = kGetIt<ModerationSignals>();
     final bool isMe = message.isMe;
 
-    final Alignment bubbleAlignment = isMe ? .centerRight : .centerLeft;
-    final BoxDecoration bubbleDecoration = isMe
-        ? BoxDecoration(
-            gradient: chatTheme.outgoingBubbleGradient,
-            borderRadius: chatTheme.outgoingBorderRadius,
-            border: chatTheme.outgoingBorder,
-            boxShadow: chatTheme.outgoingShadows,
-          )
-        : BoxDecoration(
-            color: chatTheme.incomingBubbleColor,
-            borderRadius: chatTheme.incomingBorderRadius,
-            border: chatTheme.incomingBorder,
-            boxShadow: chatTheme.incomingShadows,
-          );
-
     final Color textColor = isMe ? chatTheme.outgoingTextColor : chatTheme.incomingTextColor;
+    final Color usernameColor = isMe ? textColor.withValues(alpha: 0.9) : theme.colorScheme.primary;
 
-    return Align(
-      alignment: bubbleAlignment,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.75),
-        child: Container(
-          margin: .symmetric(horizontal: AppSpacing.spaceMd.value, vertical: AppSpacing.spaceXs.value),
-          padding: .symmetric(horizontal: AppSpacing.spaceMd.value, vertical: AppSpacing.spaceSm.value),
-          decoration: bubbleDecoration,
-          child: Column(
-            crossAxisAlignment: isMe ? .end : .start,
-            mainAxisSize: .min,
-            spacing: AppSpacing.spaceXs.value,
+    return SignalBuilder(
+      builder: (_) {
+        final bool isSelected = chatSignals.selectedMessageId.value == message.id;
+
+        // Vérifie si l'auteur du message est bloqué
+        final bool isSenderBlocked = !isMe && moderationSignals.isUserBlocked(message.senderId);
+        final bool isRevealed = chatSignals.revealedBlockedMessageIds.value.contains(message.id);
+
+        if (isSenderBlocked && !isRevealed) {
+          return ChatBlockedMessageBanner(message: message);
+        }
+
+        final BoxDecoration bubbleDecoration = isMe
+            ? (isSelected
+                  ? chatTheme.selectedOutgoingBubbleDecoration
+                  : BoxDecoration(
+                      gradient: chatTheme.outgoingBubbleGradient,
+                      borderRadius: chatTheme.outgoingBorderRadius,
+                      border: chatTheme.outgoingBorder,
+                      boxShadow: chatTheme.outgoingShadows,
+                    ))
+            : (isSelected
+                  ? chatTheme.selectedIncomingBubbleDecoration
+                  : BoxDecoration(
+                      color: chatTheme.incomingBubbleColor,
+                      borderRadius: chatTheme.incomingBorderRadius,
+                      border: chatTheme.incomingBorder,
+                      boxShadow: chatTheme.incomingShadows,
+                    ));
+
+        return Padding(
+          padding: .symmetric(horizontal: AppSpacing.spaceMd.value, vertical: AppSpacing.spaceXs.value),
+          child: Row(
+            mainAxisAlignment: isMe ? .end : .start,
+            crossAxisAlignment: .end,
+            spacing: AppSpacing.spaceSm.value,
             children: <Widget>[
-              if (message.hasMedia) ChatMediaAttachmentBubble(message: message),
-              if (message.content.isNotEmpty) Text(message.content, style: theme.textTheme.bodyMedium?.copyWith(color: textColor)),
-              Row(
-                mainAxisSize: .min,
-                children: <Widget>[
-                  Text(
-                    message.createdAt,
-                    style: theme.textTheme.labelSmall?.copyWith(color: textColor.withValues(alpha: 0.7), fontSize: 10),
+              if (!isMe) MonogramUser(username: message.senderUsername, avatarUrl: message.senderAvatarUrl, size: 34),
+              Flexible(
+                child: GestureDetector(
+                  onLongPress: () => chatSignals.toggleSelectedMessage(message.id),
+                  onTap: isSelected ? chatSignals.clearSelectedMessage : null,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.82),
+                    child: Column(
+                      crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          curve: Curves.easeOut,
+                          padding: .symmetric(horizontal: AppSpacing.spaceLg.value, vertical: AppSpacing.spaceSm.value),
+                          decoration: bubbleDecoration,
+                          child: Column(
+                            crossAxisAlignment: isMe ? .end : .start,
+                            mainAxisSize: .min,
+                            spacing: AppSpacing.spaceXs.value,
+                            children: <Widget>[
+                              /// Expediteur (+ Bouton Masquer si utilisateur bloqué et message révélé)
+                              Row(
+                                mainAxisSize: .min,
+                                spacing: AppSpacing.spaceXs.value,
+                                children: <Widget>[
+                                  Text(
+                                    message.senderUsername,
+                                    style: theme.textTheme.labelMedium?.copyWith(color: usernameColor, fontWeight: .bold),
+                                  ),
+                                  Text(
+                                    '- ${message.createdAt}',
+                                    style: theme.textTheme.labelSmall?.copyWith(color: textColor.withValues(alpha: 0.7)),
+                                  ),
+                                  if (isSenderBlocked && isRevealed) ...<Widget>[
+                                    const SizedBox(width: 4),
+                                    InkWell(
+                                      borderRadius: .circular(AppRadius.xs.value),
+                                      onTap: () => chatSignals.hideBlockedMessage(message.id),
+                                      child: Padding(
+                                        padding: const .symmetric(horizontal: 4, vertical: 2),
+                                        child: Row(
+                                          mainAxisSize: .min,
+                                          spacing: 2,
+                                          children: <Widget>[
+                                            Icon(
+                                              Icons.visibility_off_outlined,
+                                              size: 13,
+                                              color: textColor.withValues(alpha: 0.8),
+                                            ),
+                                            Text(
+                                              'Masquer',
+                                              style: theme.textTheme.labelSmall?.copyWith(
+                                                color: textColor.withValues(alpha: 0.8),
+                                                decoration: TextDecoration.underline,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+
+                              /// Si c'est une image
+                              if (message.hasMedia) ChatMediaAttachmentBubble(message: message),
+
+                              /// Si c'est un message
+                              if (message.content.isNotEmpty)
+                                Container(
+                                  padding: isSelected
+                                      ? .symmetric(horizontal: AppSpacing.spaceXs.value, vertical: AppSpacing.space2xs.value)
+                                      : .zero,
+                                  decoration: isSelected
+                                      ? (isMe
+                                            ? chatTheme.selectedOutgoingTextHighlightDecoration
+                                            : chatTheme.selectedIncomingTextHighlightDecoration)
+                                      : null,
+                                  child: ChatMessageContentText(
+                                    content: message.content,
+                                    baseStyle: theme.textTheme.bodyMedium?.copyWith(
+                                      color: textColor,
+                                      fontWeight: isSelected ? .w600 : null,
+                                    ),
+                                  ),
+                                ),
+                              Row(
+                                mainAxisSize: .min,
+                                spacing: AppSpacing.spaceXs.value,
+                                children: <Widget>[
+                                  Text(
+                                    message.hourTime,
+                                    style: theme.textTheme.labelSmall?.copyWith(color: textColor.withValues(alpha: 0.7)),
+                                  ),
+                                  if (isMe)
+                                    Icon(
+                                      message.isRead ? Icons.done_all : Icons.done,
+                                      size: 14,
+                                      color: textColor.withValues(alpha: message.isRead ? 1.0 : 0.7),
+                                    ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (message.hasReactions) ChatReactionsRow(message: message),
+                      ],
+                    ),
                   ),
-                  if (isMe) ...<Widget>[
-                    const SizedBox(width: 4),
-                    Icon(Icons.done_all, size: 14, color: textColor.withValues(alpha: 0.7)),
-                  ],
-                ],
+                ),
               ),
             ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

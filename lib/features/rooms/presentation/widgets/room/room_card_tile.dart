@@ -1,10 +1,13 @@
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:rose_gold_app_messenger/features/chat/presentation/signals/chat_signals.dart';
+import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/screens/room_screen.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/view_models/room_view_model.dart';
 import 'package:rose_gold_app_messenger/features/rooms/presentation/widgets/monogram_user.dart';
 import 'package:rose_gold_app_messenger/themes/extensions/rooms_theme_extension.dart';
 import 'package:rose_gold_app_messenger/themes/themes_all_export.dart';
+import 'package:signals_flutter/signals_flutter.dart';
 
 class RoomCardTile extends StatelessWidget {
   const new({required this.room, required this.isCurrentUserOwner, super.key});
@@ -17,8 +20,9 @@ class RoomCardTile extends StatelessWidget {
     final ThemeData theme = Theme.of(context);
     final RoomsThemeExtension roomsTheme = theme.extension<RoomsThemeExtension>() ?? .light;
     final FrontThemeExtension frontTheme = theme.extension<FrontThemeExtension>() ?? .light;
+    final ChatSignals chatSignals = kGetIt<ChatSignals>();
 
-    return Container(
+    final Widget card = Container(
       decoration: BoxDecoration(
         color: frontTheme.satinFrostOverlayColor,
         borderRadius: .all(.circular(AppRadius.lg.value)),
@@ -104,7 +108,14 @@ class RoomCardTile extends StatelessWidget {
                     if (room.description != null && room.description!.trim().isNotEmpty)
                       Text(
                         room.description!,
-                        style: theme.textTheme.bodySmall?.copyWith(color: kTaupeMutedTextColor),
+                        style: theme.textTheme.bodySmall?.copyWith(color: kTaupeMutedTextColor, fontStyle: .italic),
+                        maxLines: 1,
+                        overflow: .ellipsis,
+                      )
+                    else
+                      Text(
+                        'Aucune description',
+                        style: theme.textTheme.bodySmall?.copyWith(color: kTaupeMutedTextColor, fontStyle: .italic),
                         maxLines: 1,
                         overflow: .ellipsis,
                       ),
@@ -130,6 +141,19 @@ class RoomCardTile extends StatelessWidget {
           ),
         ),
       ),
+    );
+
+    return SignalBuilder(
+      builder: (_) {
+        final int unreadCount = chatSignals.getUnreadCountForRoom(room.id);
+        return Badge.count(
+          count: unreadCount,
+          isLabelVisible: unreadCount > 0,
+          alignment: .topRight,
+          offset: const Offset(-10, 6),
+          child: card,
+        );
+      },
     );
   }
 }

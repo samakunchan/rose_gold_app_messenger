@@ -4,14 +4,17 @@ import 'package:dart_either/dart_either.dart';
 import 'package:flutter/foundation.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/entities/encrypted_media_attachment.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/entities/message_entity.dart';
+import 'package:rose_gold_app_messenger/features/chat/domain/entities/message_reaction_group_entity.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/download_and_decrypt_media_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/get_chat_messages_stream_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/get_passphrase_use_case.dart';
+import 'package:rose_gold_app_messenger/features/chat/domain/usecases/get_room_reactions_stream_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/initialize_e2ee_keys_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/params.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/regenerate_passphrase_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/search_messages_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/send_encrypted_message_use_case.dart';
+import 'package:rose_gold_app_messenger/features/chat/domain/usecases/toggle_message_reaction_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/update_passphrase_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/presentation/view_models/message_view_model.dart';
 import 'package:rose_gold_app_messenger/features/core/errors/failures.dart';
@@ -28,6 +31,8 @@ class ChatSignals {
     required this.updatePassphraseUseCase,
     required this.regeneratePassphraseUseCase,
     required this.downloadAndDecryptMediaUseCase,
+    required this.toggleMessageReactionUseCase,
+    required this.getRoomReactionsStreamUseCase,
     required this.supabaseClient,
   });
 
@@ -39,20 +44,202 @@ class ChatSignals {
   final UpdatePassphraseUseCase updatePassphraseUseCase;
   final RegeneratePassphraseUseCase regeneratePassphraseUseCase;
   final DownloadAndDecryptMediaUseCase downloadAndDecryptMediaUseCase;
+  final ToggleMessageReactionUseCase toggleMessageReactionUseCase;
+  final GetRoomReactionsStreamUseCase getRoomReactionsStreamUseCase;
   final SupabaseClient supabaseClient;
+
+  static const Duration _typingMaxDuration = Duration(minutes: 1);
 
   final Signal<bool> isLoading = .new(false);
   final Signal<bool> isSending = .new(false);
   final Signal<bool> isSearching = .new(false);
   final Signal<bool> isPassphraseLoading = .new(false);
+  final Signal<bool> isTyping = .new(false);
   final Signal<String?> currentRoomId = .new(null);
+  final Signal<String?> selectedMessageId = signal<String?>(null);
+  final Signal<Set<String>> revealedBlockedMessageIds = signal<Set<String>>(<String>{});
   final Signal<String?> currentPassphrase = signal<String?>(null);
   final Signal<List<MessageViewModel>> messages = signal<List<MessageViewModel>>(<MessageViewModel>[]);
   final Signal<List<MessageViewModel>> searchResults = signal<List<MessageViewModel>>(<MessageViewModel>[]);
+  final Signal<List<String>> typingUsernames = signal<List<String>>(<String>[]);
+  final Signal<Map<String, int>> unreadCountsByRoomId = signal<Map<String, int>>(<String, int>{});
 
   final Map<String, Uint8List> _decryptedMediaCache = <String, Uint8List>{};
+  final Set<String> _locallyReadMessageIds = <String>{};
+  final Set<String> _baselineSeenMessageIds = <String>{};
+  bool _hasCapturedBaselineWithoutReadBy = false;
+
+  List<MessageEntity> _rawEntities = <MessageEntity>[];
+  List<Map<String, dynamic>> _rawReactionRows = <Map<String, dynamic>>[];
 
   StreamSubscription<Either<Failure, List<MessageEntity>>>? _messagesSubscription;
+  StreamSubscription<List<Map<String, dynamic>>>? _reactionsSubscription;
+  StreamSubscription<List<Map<String, dynamic>>>? _unreadMessagesSubscription;
+  String? _unreadListenerUserId;
+  RealtimeChannel? _typingChannel;
+  Timer? _typingResetTimer;
+  Timer? _typingExpiryCleanupTimer;
+  String? _cachedCurrentUsername;
+  String? _cachedCurrentUserId;
+
+  int getUnreadCountForRoom(String roomId) => unreadCountsByRoomId.value[roomId] ?? 0;
+
+  MessageViewModel? get selectedMessage {
+    final String? id = selectedMessageId.value;
+    if (id == null) {
+      return null;
+    }
+    for (final MessageViewModel item in messages.value) {
+      if (item.id == id) {
+        return item;
+      }
+    }
+    return null;
+  }
+
+  void toggleSelectedMessage(String messageId) {
+    selectedMessageId.value = selectedMessageId.value == messageId ? null : messageId;
+  }
+
+  void clearSelectedMessage() {
+    if (selectedMessageId.value != null) {
+      selectedMessageId.value = null;
+    }
+  }
+
+  void revealBlockedMessage(String messageId) {
+    revealedBlockedMessageIds.value = <String>{...revealedBlockedMessageIds.value, messageId};
+  }
+
+  void hideBlockedMessage(String messageId) {
+    final Set<String> updated = Set<String>.from(revealedBlockedMessageIds.value)..remove(messageId);
+    revealedBlockedMessageIds.value = updated;
+  }
+
+  Future<void> toggleReaction({
+    required String messageId,
+    required String emoji,
+  }) async {
+    final String? roomId = currentRoomId.value;
+    if (roomId == null) {
+      return;
+    }
+    clearSelectedMessage();
+    await toggleMessageReactionUseCase(
+      ToggleMessageReactionParams(
+        roomId: roomId,
+        messageId: messageId,
+        emoji: emoji,
+      ),
+    );
+  }
+
+  void startListeningToUnreadMessages() {
+    final String currentUserId = supabaseClient.auth.currentUser?.id ?? '';
+    if (currentUserId.isEmpty) {
+      return;
+    }
+    if (_unreadMessagesSubscription != null && _unreadListenerUserId == currentUserId) {
+      return;
+    }
+
+    unawaited(_unreadMessagesSubscription?.cancel());
+    _unreadListenerUserId = currentUserId;
+    _hasCapturedBaselineWithoutReadBy = false;
+    _baselineSeenMessageIds.clear();
+
+    _unreadMessagesSubscription = supabaseClient
+        .from('messages')
+        .stream(primaryKey: <String>['id'])
+        .listen(
+          (List<Map<String, dynamic>> rows) {
+            final String activeUserId = supabaseClient.auth.currentUser?.id ?? '';
+            if (activeUserId.isEmpty) {
+              return;
+            }
+
+            final String? openRoomId = currentRoomId.value;
+            final Map<String, int> counts = <String, int>{};
+
+            final bool schemaHasReadBy = rows.isEmpty || rows.first.containsKey('read_by');
+            if (!schemaHasReadBy && !_hasCapturedBaselineWithoutReadBy) {
+              for (final Map<String, dynamic> row in rows) {
+                final String? id = row['id'] as String?;
+                if (id != null) {
+                  _baselineSeenMessageIds.add(id);
+                }
+              }
+              _hasCapturedBaselineWithoutReadBy = true;
+            }
+
+            for (final Map<String, dynamic> row in rows) {
+              final String? id = row['id'] as String?;
+              final String? roomId = row['room_id'] as String?;
+              final String? senderId = row['sender_id'] as String?;
+              if (id == null || roomId == null || senderId == null || senderId == activeUserId) {
+                continue;
+              }
+
+              if (openRoomId == roomId) {
+                _locallyReadMessageIds.add(id);
+                continue;
+              }
+
+              if (_locallyReadMessageIds.contains(id)) {
+                continue;
+              }
+
+              if (row.containsKey('read_by')) {
+                final List<Object?> rawReadBy = row['read_by'] as List<Object?>? ?? <Object?>[];
+                final bool isReadInDb = rawReadBy.any((Object? item) => item?.toString() == activeUserId);
+                if (isReadInDb) {
+                  continue;
+                }
+              } else if (_baselineSeenMessageIds.contains(id)) {
+                continue;
+              }
+
+              counts[roomId] = (counts[roomId] ?? 0) + 1;
+            }
+
+            unreadCountsByRoomId.value = counts;
+          },
+          onError: (Object error) {
+            if (kDebugMode) {
+              print('Erreur stream messages non lus: $error');
+            }
+          },
+        );
+  }
+
+  void _markRoomAsReadLocally(String roomId, [Iterable<String>? messageIds]) {
+    if (messageIds != null) {
+      _locallyReadMessageIds.addAll(messageIds);
+    }
+    unawaited(
+      Future<void>.microtask(() {
+        if (unreadCountsByRoomId.value.containsKey(roomId)) {
+          final Map<String, int> updated = Map<String, int>.from(unreadCountsByRoomId.value)..remove(roomId);
+          unreadCountsByRoomId.value = updated;
+        }
+      }),
+    );
+  }
+
+  String? get typingIndicatorText {
+    final List<String> names = typingUsernames.value;
+    if (names.isEmpty) {
+      return null;
+    }
+    if (names.length == 1) {
+      return '${names.first} est en train d’écrire...';
+    }
+    if (names.length == 2) {
+      return '${names[0]} et ${names[1]} sont en train d’écrire...';
+    }
+    final String others = names.sublist(0, names.length - 1).join(', ');
+    return '$others et ${names.last} sont en train d’écrire...';
+  }
 
   Future<void> initializeKeys() async {
     final Either<Failure, void> result = await initKeysUseCase();
@@ -129,17 +316,24 @@ class ChatSignals {
 
   void subscribeToRoom({required String roomId, String? peerPublicKeyBase64}) {
     unawaited(_messagesSubscription?.cancel());
+    unawaited(_reactionsSubscription?.cancel());
+    _rawEntities = <MessageEntity>[];
+    _rawReactionRows = <Map<String, dynamic>>[];
     currentRoomId.value = roomId;
     isLoading.value = true;
+    _markRoomAsReadLocally(roomId);
 
     final String currentUserId = supabaseClient.auth.currentUser?.id ?? '';
+    unawaited(_subscribeToTypingChannel(roomId: roomId));
+
+    _reactionsSubscription = getRoomReactionsStreamUseCase(roomId: roomId).listen((List<Map<String, dynamic>> rows) {
+      _rawReactionRows = rows;
+      _rebuildMessagesWithReactions(currentUserId: currentUserId);
+    });
 
     _messagesSubscription =
         getMessagesStreamUseCase(
-          GetChatMessagesStreamParams(
-            roomId: roomId,
-            peerPublicKeyBase64: peerPublicKeyBase64,
-          ),
+          GetChatMessagesStreamParams(roomId: roomId, peerPublicKeyBase64: peerPublicKeyBase64),
         ).listen((Either<Failure, List<MessageEntity>> either) {
           either.fold(
             ifLeft: (Failure failure) {
@@ -149,18 +343,236 @@ class ChatSignals {
               }
             },
             ifRight: (List<MessageEntity> entities) {
-              messages.value = entities
-                  .map(
-                    (MessageEntity e) => MessageViewModel(
-                      e,
-                      currentUserId: currentUserId,
-                    ),
-                  )
-                  .toList();
+              _rawEntities = entities;
+              _markRoomAsReadLocally(roomId, entities.map((MessageEntity e) => e.id));
+              _rebuildMessagesWithReactions(currentUserId: currentUserId);
               isLoading.value = false;
             },
           );
         });
+  }
+
+  void _rebuildMessagesWithReactions({required String currentUserId}) {
+    // Regroupe les réactions par message_id puis par emoji
+    final Map<String, Map<String, List<String>>> reactionsByMessage = <String, Map<String, List<String>>>{};
+    for (final Map<String, dynamic> row in _rawReactionRows) {
+      final String? msgId = row['message_id'] as String?;
+      final String? emoji = row['emoji'] as String?;
+      final String? uId = row['user_id'] as String?;
+      if (msgId == null || emoji == null || uId == null) {
+        continue;
+      }
+      reactionsByMessage.putIfAbsent(msgId, () => <String, List<String>>{});
+      reactionsByMessage[msgId]!.putIfAbsent(emoji, () => <String>[]);
+      reactionsByMessage[msgId]![emoji]!.add(uId);
+    }
+
+    messages.value = _rawEntities.map((MessageEntity e) {
+      final Map<String, List<String>>? msgReactions = reactionsByMessage[e.id];
+      final List<MessageReactionGroupEntity> groups = <MessageReactionGroupEntity>[];
+
+      if (msgReactions != null) {
+        msgReactions.forEach((String emoji, List<String> userIds) {
+          groups.add(
+            MessageReactionGroupEntity(
+              emoji: emoji,
+              count: userIds.length,
+              userIds: userIds,
+              hasReacted: userIds.contains(currentUserId),
+            ),
+          );
+        });
+      }
+
+      final MessageEntity enrichedEntity = MessageEntity(
+        id: e.id,
+        roomId: e.roomId,
+        senderId: e.senderId,
+        decryptedContent: e.decryptedContent,
+        keyFingerprint: e.keyFingerprint,
+        createdAt: e.createdAt,
+        senderUsername: e.senderUsername,
+        senderAvatarUrl: e.senderAvatarUrl,
+        mediaUrl: e.mediaUrl,
+        attachment: e.attachment,
+        readBy: e.readBy,
+        reactions: groups,
+      );
+
+      return MessageViewModel(enrichedEntity, currentUserId: currentUserId);
+    }).toList();
+  }
+
+  Future<void> _subscribeToTypingChannel({required String roomId}) async {
+    await _leaveTypingChannel();
+    unawaited(_resolveCurrentUsername());
+
+    final RealtimeChannel channel = supabaseClient.channel('room_typing:$roomId');
+    _typingChannel = channel;
+
+    channel.onPresenceSync((_) {
+      _syncTypingUsers();
+    }).subscribe();
+  }
+
+  void _syncTypingUsers() {
+    _typingExpiryCleanupTimer?.cancel();
+    _typingExpiryCleanupTimer = null;
+
+    final RealtimeChannel? channel = _typingChannel;
+    if (channel == null) {
+      typingUsernames.value = <String>[];
+      return;
+    }
+
+    final String currentUserId = supabaseClient.auth.currentUser?.id ?? '';
+    final DateTime now = DateTime.now().toUtc();
+    final List<SinglePresenceState> states = channel.presenceState();
+
+    final Map<String, String> activeByUserId = <String, String>{};
+    Duration? shortestRemaining;
+
+    for (final SinglePresenceState state in states) {
+      for (final Presence presence in state.presences) {
+        final Map<String, dynamic> payload = presence.payload;
+        final String? userId = payload['user_id'] as String?;
+        final bool typing = payload['is_typing'] == true;
+        if (userId == null || userId.isEmpty || userId == currentUserId || !typing) {
+          continue;
+        }
+
+        final String? typedAtRaw = payload['typed_at'] as String?;
+        final DateTime? typedAt = typedAtRaw != null ? DateTime.tryParse(typedAtRaw)?.toUtc() : null;
+        if (typedAt != null) {
+          final Duration elapsed = now.difference(typedAt);
+          if (elapsed >= _typingMaxDuration) {
+            continue;
+          }
+          final Duration remaining = _typingMaxDuration - elapsed;
+          if (shortestRemaining == null || remaining < shortestRemaining) {
+            shortestRemaining = remaining;
+          }
+        }
+
+        final String rawName = (payload['username'] as String? ?? '').trim();
+        activeByUserId[userId] = rawName.isNotEmpty ? rawName : 'Utilisateur';
+      }
+    }
+
+    typingUsernames.value = activeByUserId.values.toList();
+
+    if (shortestRemaining != null) {
+      _typingExpiryCleanupTimer = Timer(shortestRemaining + const Duration(milliseconds: 250), _syncTypingUsers);
+    }
+  }
+
+  Future<String> _resolveCurrentUsername() async {
+    final User? user = supabaseClient.auth.currentUser;
+    if (user == null) {
+      return 'Utilisateur';
+    }
+    if (_cachedCurrentUserId == user.id && _cachedCurrentUsername != null) {
+      return _cachedCurrentUsername!;
+    }
+    try {
+      final PostgrestMap? row = await supabaseClient.from('profiles').select('username, user_tag').eq('id', user.id).maybeSingle();
+      final String? dbUsername = (row?['username'] as String?)?.trim();
+      final String? dbTag = (row?['user_tag'] as String?)?.trim();
+      final String? metaUsername = (user.userMetadata?['username'] as String?)?.trim();
+      final String? metaTag = (user.userMetadata?['user_tag'] as String?)?.trim();
+
+      final String resolved = (dbUsername != null && dbUsername.isNotEmpty)
+          ? dbUsername
+          : (metaUsername != null && metaUsername.isNotEmpty)
+          ? metaUsername
+          : (dbTag != null && dbTag.isNotEmpty)
+          ? dbTag
+          : (metaTag != null && metaTag.isNotEmpty)
+          ? metaTag
+          : 'Utilisateur';
+
+      _cachedCurrentUserId = user.id;
+      _cachedCurrentUsername = resolved;
+      return resolved;
+    } on Exception catch (_) {
+      final String fallback = (user.userMetadata?['username'] as String?)?.trim() ?? 'Utilisateur';
+      return fallback.isNotEmpty ? fallback : 'Utilisateur';
+    }
+  }
+
+  void onInputTextChanged(String text) {
+    if (text.trim().isEmpty) {
+      if (isTyping.value) {
+        unawaited(setTyping(value: false));
+      }
+      return;
+    }
+
+    if (!isTyping.value) {
+      unawaited(setTyping(value: true));
+    }
+  }
+
+  Future<void> setTyping({required bool value}) async {
+    _typingResetTimer?.cancel();
+    _typingResetTimer = null;
+
+    if (!value) {
+      if (!isTyping.value) {
+        return;
+      }
+      isTyping.value = false;
+      try {
+        await _typingChannel?.untrack();
+      } on Exception catch (_) {}
+      return;
+    }
+
+    isTyping.value = true;
+    _typingResetTimer = Timer(_typingMaxDuration, () {
+      unawaited(setTyping(value: false));
+    });
+
+    final String userId = supabaseClient.auth.currentUser?.id ?? '';
+    if (userId.isEmpty || _typingChannel == null) {
+      return;
+    }
+
+    final String username = await _resolveCurrentUsername();
+    if (!isTyping.value || _typingChannel == null) {
+      return;
+    }
+
+    try {
+      await _typingChannel!.track(<String, dynamic>{
+        'user_id': userId,
+        'username': username,
+        'is_typing': true,
+        'typed_at': DateTime.now().toUtc().toIso8601String(),
+      });
+    } on Exception catch (_) {}
+  }
+
+  Future<void> _leaveTypingChannel() async {
+    _typingResetTimer?.cancel();
+    _typingResetTimer = null;
+    _typingExpiryCleanupTimer?.cancel();
+    _typingExpiryCleanupTimer = null;
+
+    final RealtimeChannel? channel = _typingChannel;
+    _typingChannel = null;
+
+    await Future<void>.delayed(Duration.zero);
+    isTyping.value = false;
+    typingUsernames.value = <String>[];
+
+    if (channel != null) {
+      try {
+        await channel.untrack();
+        await channel.unsubscribe();
+        await supabaseClient.removeChannel(channel);
+      } on Exception catch (_) {}
+    }
   }
 
   Future<bool> sendMessage({
@@ -177,6 +589,7 @@ class ChatSignals {
       return false;
     }
 
+    unawaited(setTyping(value: false));
     isSending.value = true;
     final Either<Failure, MessageEntity> result = await sendMessageUseCase(
       SendEncryptedMessageParams(
@@ -266,9 +679,14 @@ class ChatSignals {
   }
 
   Future<void> dispose() async {
+    await _leaveTypingChannel();
     await _messagesSubscription?.cancel();
     _messagesSubscription = null;
+    await _reactionsSubscription?.cancel();
+    _reactionsSubscription = null;
     currentRoomId.value = null;
+    selectedMessageId.value = null;
+    revealedBlockedMessageIds.value = <String>{};
     messages.value = <MessageViewModel>[];
     _decryptedMediaCache.clear();
     clearSearch();

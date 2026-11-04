@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:rose_gold_app_messenger/features/chat/presentation/screens/chat_screen.dart';
+import 'package:rose_gold_app_messenger/features/chat/presentation/signals/chat_signals.dart';
 import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
 import 'package:rose_gold_app_messenger/features/presences/presentation/signals/user_presence_signals.dart';
 import 'package:rose_gold_app_messenger/features/presences/presentation/view_models/user_presence_view_model.dart';
@@ -41,6 +42,8 @@ class _RoomScreenState extends State<RoomScreen> {
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
     final RoomsThemeExtension roomsTheme = theme.extension<RoomsThemeExtension>() ?? .light;
+    final ChatThemeExtension chatTheme = theme.extension<ChatThemeExtension>() ?? .light;
+    final ChatSignals chatSignals = kGetIt<ChatSignals>();
 
     return SignalBuilder(
       builder: (_) {
@@ -48,6 +51,7 @@ class _RoomScreenState extends State<RoomScreen> {
         final RoomsSignals roomsSignals = kGetIt<RoomsSignals>();
         final UserPresenceSignals presenceSignals = kGetIt<UserPresenceSignals>();
         final String? currentUserId = kGetIt<SupabaseClient>().auth.currentUser?.id;
+        final int unreadCount = chatSignals.getUnreadCountForRoom(widget.roomId);
 
         final List<RoomMemberViewModel> members = roomMembersSignals.members.value;
         final List<UserPresenceViewModel> onlineUsers = presenceSignals.onlineUsers.value;
@@ -66,7 +70,14 @@ class _RoomScreenState extends State<RoomScreen> {
             .toList();
 
         return Scaffold(
-          appBar: RoomAppBar(currentRoom: currentRoom, roomId: widget.roomId, name: roomName, isCurrentUserOwner: isCurrentUserOwner),
+          appBar: RoomAppBar(
+            currentRoom: currentRoom,
+            roomId: widget.roomId,
+            name: roomName,
+            isCurrentUserOwner: isCurrentUserOwner,
+            ownerId: owner?.userId ?? currentRoom?.createdBy,
+            ownerUsername: owner?.username,
+          ),
           body: SafeArea(
             child: SingleChildScrollView(
               padding: .symmetric(horizontal: AppSpacing.spaceMd.value, vertical: AppSpacing.spaceSm.value),
@@ -77,25 +88,56 @@ class _RoomScreenState extends State<RoomScreen> {
                   // 1. En-tête complet du salon (Infos complètes)
                   RoomHeaderCompleteInfos(members: members, currentRoom: currentRoom, owner: owner),
 
-                  // 2. Bouton principal "Joindre la conversation"
-                  SizedBox(
-                    width: .infinity,
-                    height: 50,
-                    child: ElevatedButton.icon(
-                      style: roomsTheme.primaryDecorationButton,
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute<void>(
-                            builder: (_) => ChatScreen(roomId: widget.roomId, roomName: roomName),
+                  // 2. Bouton principal "Joindre la conversation" + compteur de messages non lus
+                  Column(
+                    spacing: AppSpacing.spaceXs.value,
+                    children: <Widget>[
+                      SizedBox(
+                        width: .infinity,
+                        height: 50,
+                        child: ElevatedButton.icon(
+                          style: roomsTheme.primaryDecorationButton,
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => ChatScreen(roomId: widget.roomId, roomName: roomName),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.forum_outlined),
+                          label: Text(
+                            'Joindre la conversation',
+                            style: theme.textTheme.labelLarge?.copyWith(fontWeight: .bold, color: roomsTheme.primaryTextColor),
                           ),
-                        );
-                      },
-                      icon: const Icon(Icons.forum_outlined),
-                      label: Text(
-                        'Joindre la conversation',
-                        style: theme.textTheme.labelLarge?.copyWith(fontWeight: .bold, color: roomsTheme.primaryTextColor),
+                        ),
                       ),
-                    ),
+                      if (unreadCount > 0)
+                        Container(
+                          padding: .symmetric(
+                            horizontal: AppSpacing.spaceSm.value,
+                            vertical: AppSpacing.spaceXs.value,
+                          ),
+                          decoration: chatTheme.unreadBadgeDecoration,
+                          child: Row(
+                            mainAxisSize: .min,
+                            spacing: AppSpacing.spaceXs.value,
+                            children: <Widget>[
+                              Icon(
+                                Icons.mark_chat_unread_outlined,
+                                size: 14,
+                                color: chatTheme.unreadBadgeTextColor,
+                              ),
+                              Text(
+                                unreadCount == 1 ? '1 message non lu' : '$unreadCount messages non lus',
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  fontWeight: .bold,
+                                  color: chatTheme.unreadBadgeTextColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
                   ),
 
                   // 3. Personnes connectées sur le salon (En texte seulement)

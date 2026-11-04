@@ -1,7 +1,9 @@
 import 'dart:ui';
 
+import 'package:intl/intl.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/entities/encrypted_media_attachment.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/entities/message_entity.dart';
+import 'package:rose_gold_app_messenger/features/chat/domain/entities/message_reaction_group_entity.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class MessageViewModel {
@@ -14,6 +16,15 @@ class MessageViewModel {
   String get id => entity.id;
   String get roomId => entity.roomId;
   String get senderId => entity.senderId;
+  String get senderUsername {
+    final String? name = entity.senderUsername?.trim();
+    if (name != null && name.isNotEmpty) {
+      return isMe ? 'Moi' : name;
+    }
+    return isMe ? 'Moi' : 'Utilisateur';
+  }
+
+  String? get senderAvatarUrl => entity.senderAvatarUrl;
   String get content => entity.decryptedContent;
   String? get mediaUrl => entity.mediaUrl;
   EncryptedMediaAttachment? get attachment => entity.attachment;
@@ -24,5 +35,10 @@ class MessageViewModel {
   int? get mediaFileSize => entity.attachment?.fileSize;
   String get keyFingerprint => entity.keyFingerprint;
   bool get isMe => entity.senderId == currentUserId;
+  List<String> get readBy => entity.readBy;
+  bool get isRead => entity.readBy.any((String id) => id != entity.senderId);
+  List<MessageReactionGroupEntity> get reactions => entity.reactions;
+  bool get hasReactions => entity.reactions.isNotEmpty;
   String get createdAt => timeago.format(DateTime.parse(entity.createdAt), locale: _locale);
+  String get hourTime => DateFormat('HH:mm', _locale).format(DateTime.parse(entity.createdAt).toLocal());
 }

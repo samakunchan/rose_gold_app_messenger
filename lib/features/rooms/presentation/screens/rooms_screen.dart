@@ -37,6 +37,7 @@ class _RoomsScreenState extends State<RoomsScreen> {
         kGetIt<RoomInvitationsSignals>().receiveInvitation(invitedUserId: userId),
       );
       unawaited(kGetIt<ChatSignals>().initializeKeys());
+      kGetIt<ChatSignals>().startListeningToUnreadMessages();
     }
   }
 

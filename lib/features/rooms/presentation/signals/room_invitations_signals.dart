@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dart_either/dart_either.dart';
 import 'package:flutter/foundation.dart';
+import 'package:rose_gold_app_messenger/features/chat/domain/usecases/rotate_room_key_for_new_member_use_case.dart';
 import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
 import 'package:rose_gold_app_messenger/features/core/errors/failures.dart';
 import 'package:rose_gold_app_messenger/features/rooms/domain/entities/room_invitation_entity.dart';
@@ -26,6 +27,7 @@ class RoomInvitationsSignals {
     required this.receiveInvitationUseCase,
     required this.searchUserByTagUseCase,
     required this.roomsSignals,
+    required this.rotateRoomKeyForNewMemberUseCase,
   });
 
   final SendInvitationUseCase sendInvitationUseCase;
@@ -34,6 +36,7 @@ class RoomInvitationsSignals {
   final ReceiveInvitationUseCase receiveInvitationUseCase;
   final SearchUserByTagUseCase searchUserByTagUseCase;
   final RoomsSignals roomsSignals;
+  final RotateRoomKeyForNewMemberUseCase rotateRoomKeyForNewMemberUseCase;
 
   final Signal<bool> isLoading = .new(false);
   final Signal<String?> errorInvitation = .new(null);
@@ -113,6 +116,7 @@ class RoomInvitationsSignals {
 
   Future<void> acceptInvitation({required String invitationId}) async {
     isLoading.value = true;
+    final RoomInvitationViewModel? invitation = invitations.value.where((RoomInvitationViewModel i) => i.id == invitationId).firstOrNull;
     final Either<Failure, bool> result = await acceptInvitationUseCase(InvitationParams(invitationId: invitationId));
 
     await result.fold(
@@ -124,6 +128,9 @@ class RoomInvitationsSignals {
         }
       },
       ifRight: (bool entity) async {
+        if (invitation != null) {
+          await rotateRoomKeyForNewMemberUseCase(roomId: invitation.roomId, newMemberId: invitation.invitedUserId);
+        }
         isLoading.value = false;
         errorInvitation.value = null;
         await roomsSignals.getRooms();

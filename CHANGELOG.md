@@ -1,5 +1,37 @@
 # CHANGELOG rose_gold_app_messenger
 
+## 🚀 0.11.0 - 04/11/2026
+
+### Added
+
+- Added multi-epoch E2EE room key rotation (`room_keys` with `key_fingerprint`) and tracked member departure with `leave_at` on `room_members`.
+- Added enriched `ChatMessageBubble` displaying sender username, monogram avatar, and formatted timestamp.
+- Added instant message send upon pressing Enter in `ChatInputField`.
+- Added Realtime read receipts (`read_by` array, `mark_room_messages_as_read` RPC, and status checkmarks).
+- Added Realtime typing indicators ("X est en train d'écrire...") with Presence channel and 1-minute auto-expiry timer.
+- Added unread message counters on room cards and room header view.
+- Added room reporting bottom sheet with optional immediate room leave and owner block options.
+- Added message contextual actions menu (reply, pin, report) with dimmed backdrop.
+- Added message reporting flow (`ReportMessageBottomSheet`) with blocked author handling.
+- Added blocked message banner with reveal/hide toggle inside chat.
+- Added message emoji reactions bar and bottom sheet picker with Realtime updates (`message_reactions`).
+- Added emoji picker in message input field and Discord-style autocomplete (`:emoji` and emoticons like `:)`, `<3`).
+- Added dynamic Jumboji sizing for emoji-only messages and highlighted inline emoji text sizing.
+
+### Changed
+
+- Updated `schema.sql` with `message_reactions` table, `message_id` on reports, and `SECURITY DEFINER` on invitation validation.
+- Moved `EmojiData` catalog from `domain/entities` to presentation utils (`emoji_catalog.dart`).
+- Updated GDPR user data export to include message reactions.
+
+### Fixed
+
+- Fixed `validate_room_invitation` RLS visibility bypass using `SECURITY DEFINER`.
+- Fixed `SignalEffectException` on room entry by deferring signal mutations.
+- Fixed code style, linters, and constructor shorthands.
+
+---
+
 ## 🚀 0.10.0 - 30/10/2026
 
 ### Added

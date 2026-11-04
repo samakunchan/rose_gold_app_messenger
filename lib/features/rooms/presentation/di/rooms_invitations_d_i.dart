@@ -1,3 +1,4 @@
+import 'package:rose_gold_app_messenger/features/chat/domain/usecases/rotate_room_key_for_new_member_use_case.dart';
 import 'package:rose_gold_app_messenger/features/core/di/injection_container.dart';
 import 'package:rose_gold_app_messenger/features/rooms/data/datasources/room_invitation_data_source.dart';
 import 'package:rose_gold_app_messenger/features/rooms/data/repositories/room_invitation_repository_impl.dart';
@@ -32,6 +33,7 @@ void initSupabaseRoomInvitationsDI() {
         receiveInvitationUseCase: kGetIt<ReceiveInvitationUseCase>(),
         searchUserByTagUseCase: kGetIt<SearchUserByTagUseCase>(),
         roomsSignals: kGetIt<RoomsSignals>(),
+        rotateRoomKeyForNewMemberUseCase: kGetIt<RotateRoomKeyForNewMemberUseCase>(),
       ),
     )
   //

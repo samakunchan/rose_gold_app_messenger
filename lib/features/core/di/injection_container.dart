@@ -50,6 +50,7 @@ Future<void> initDI() async {
   initFeedbackDI();
   initSupabaseAuthDI();
   initSupabasePresenceDI();
+  initChatDI();
   initSupabaseRoomDI();
   initSupabaseRoomsMembersDI();
   initSupabaseRoomInvitationsDI();
@@ -57,5 +58,4 @@ Future<void> initDI() async {
   initSettingsDI();
   initProfileDI();
   initMediaDI();
-  initChatDI();
 }

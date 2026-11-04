@@ -7,10 +7,13 @@ import 'package:rose_gold_app_messenger/features/chat/domain/repositories/chat_r
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/download_and_decrypt_media_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/get_chat_messages_stream_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/get_passphrase_use_case.dart';
+import 'package:rose_gold_app_messenger/features/chat/domain/usecases/get_room_reactions_stream_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/initialize_e2ee_keys_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/regenerate_passphrase_use_case.dart';
+import 'package:rose_gold_app_messenger/features/chat/domain/usecases/rotate_room_key_for_new_member_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/search_messages_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/send_encrypted_message_use_case.dart';
+import 'package:rose_gold_app_messenger/features/chat/domain/usecases/toggle_message_reaction_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/domain/usecases/update_passphrase_use_case.dart';
 import 'package:rose_gold_app_messenger/features/chat/presentation/signals/chat_signals.dart';
 import 'package:rose_gold_app_messenger/features/core/database/app_database.dart';
@@ -63,6 +66,15 @@ void initChatDI() {
     ..registerLazySingleton<DownloadAndDecryptMediaUseCase>(
       () => DownloadAndDecryptMediaUseCase(repository: kGetIt<ChatRepository>()),
     )
+    ..registerLazySingleton<RotateRoomKeyForNewMemberUseCase>(
+      () => RotateRoomKeyForNewMemberUseCase(chatRepository: kGetIt<ChatRepository>()),
+    )
+    ..registerLazySingleton<ToggleMessageReactionUseCase>(
+      () => ToggleMessageReactionUseCase(kGetIt<ChatRepository>()),
+    )
+    ..registerLazySingleton<GetRoomReactionsStreamUseCase>(
+      () => GetRoomReactionsStreamUseCase(kGetIt<ChatRepository>()),
+    )
     /// Signals
     ..registerLazySingleton<ChatSignals>(
       () => ChatSignals(
@@ -74,6 +86,8 @@ void initChatDI() {
         updatePassphraseUseCase: kGetIt<UpdatePassphraseUseCase>(),
         regeneratePassphraseUseCase: kGetIt<RegeneratePassphraseUseCase>(),
         downloadAndDecryptMediaUseCase: kGetIt<DownloadAndDecryptMediaUseCase>(),
+        toggleMessageReactionUseCase: kGetIt<ToggleMessageReactionUseCase>(),
+        getRoomReactionsStreamUseCase: kGetIt<GetRoomReactionsStreamUseCase>(),
         supabaseClient: kGetIt<SupabaseClient>(),
       ),
     );
